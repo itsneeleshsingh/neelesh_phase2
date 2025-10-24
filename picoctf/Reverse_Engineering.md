@@ -31,6 +31,7 @@ print("picoCTF{" + ''.join(password) + "}")
 ```
 8. The Python code takes the target string then reconstructs the original password by reversing each loop operation.
 9. Running the script provided the original password which is the flag(I formatted it at last by adding picoCTF and brackets).
+<img width="1919" height="1079" alt="image (1)" src="https://github.com/user-attachments/assets/d4c6fded-a7fa-4e65-bee3-1a632468ae9a" />
 
 
 ## Flag:
@@ -51,4 +52,5 @@ so instead of this i wrote -
 
 ## Resources:
 - Google for some syntax of python like .join() function.
+
 - Also used [Python - Initialize empty array of given length](https://www.geeksforgeeks.org/python/python-initialize-empty-array-of-given-length/) to know how we initialise empty array in python.(I know in C and C++ but not in python)
