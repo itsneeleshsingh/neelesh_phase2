@@ -50,6 +50,8 @@ This challenge ask us to analyze a binary program and determine the value of the
     0x00000000000011b0  __libc_csu_fini
     0x00000000000011b8  _fini
     ```
+    <img width="1920" height="1080" alt="image (2)" src="https://github.com/user-attachments/assets/80b35d93-acaf-4493-ac5a-7a9f2eab1f1e" />
+
 5. Here I found that the main function was there, so to disassemble that first we have to convert into intel format as it is more understandable for me and also the video that i saw used that.
     ```
     (gdb) set disassembly-flavor intel
@@ -182,3 +184,4 @@ so instead of this i wrote -
 - Google for some syntax of python like .join() function.
 
 - Also used [Python - Initialize empty array of given length](https://www.geeksforgeeks.org/python/python-initialize-empty-array-of-given-length/) to know how we initialise empty array in python.(I know in C and C++ but not in python)
+
