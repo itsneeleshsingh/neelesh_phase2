@@ -128,6 +128,84 @@ picoCTF{549698}
 
 
 
+
+# 2. ARMssembly 1
+This challenge presents an ARM assembly program that takes an input from the user and performs a series of operations and then prints either win or loose message. Our task is to analyze the assembly code and determine the specific input that will cause the program to print "You Win!".
+
+## Solution:
+1. First, I opened the file in my terminal using nano, but any editor like VS Code or vim would work.
+    ```bash
+    ┌──(neels㉿neel)-[~/PicoCTF/ARM_Assembly1]
+    └─$ nano chall_1.S
+    ```
+2. The first line `.arch armv8-a` tells the assembler that instructions or encodings are for 64-bit ARM.
+There were more things and some functions but I first went to `main` function as I do in our normal C programming.
+3. Here first I saw the `atoi` function which converts the string to int. I assumed that the starting code of the main is accepting the user input and it was also there when i understood the code and in the challenge question itself.
+4. Now when i saw the line `bl func` , it clicked that this is calling the function. Also the input was in w0 before calling the func.  
+Now `sub	sp, sp, #32`, this is creating and allocating some memory in stack pointer.  
+`str	w0, [sp, 12]` - this is storing the w0 value in a pointer memory address sp+12. Let us say that `input`.
+- mov	w0, 83    - Now 83 is being stored to w0 register.
+- str	w0, [sp, 16]    - now w0 value which is 83 is being stored in sp+16 memory location.
+- str	wzr, [sp, 20]   - here the zero register is storing 0 in sp+20 memory adress.
+- mov	w0, 3  - Now 3 is being stored to w0 register.
+- str	w0, [sp, 24]   - here w0 that is 3 is stored in sp+24 memory adress
+- ldr	w0, [sp, 20]    - now it loads value of sp+20 which is 0 to w0 register
+- ldr	w1, [sp, 16]    - and value of sp+16 which is 83 into w1 register.
+- lsl	w0, w1, w0   - I checked on google and found it is left shift. So w0 = w1<<w0 that is 83<<0, so it means nothing is shifted and w0 = 83.
+- str	w0, [sp, 28]    - now w0 which stores 83 is being stored in sp+28 location
+- ldr	w1, [sp, 28]   - here sp+28 which in last step was stored value 83 is retrieved and stored in w1.
+- ldr	w0, [sp, 24]   - now value of sp+24 which is 3 is retrieved in w0.
+- sdiv	w0, w1, w0   - It means - Signed divide, so w0 = w1/w0 that is w0 = 83/3 = 27
+- str	w0, [sp, 28]   - Now 27 is being stored in sp+28 location.
+- ldr	w1, [sp, 28]   - now sp+28 which stores 27 is stored in w1.
+- ldr	w0, [sp, 12]    -  here value of sp+12 which we termed as input value is stored in w1.
+- sub	w0, w1, w0    - now we subtract w1-w0 and store it in w0 itself, thus w0 = 27 - input
+- str	w0, [sp, 28]    - now 27-input is stored in sp+28 memory location
+- ldr	w0, [sp, 28]  - the 27-input stored in sp+28 location is again retrieved in w0
+- add	sp, sp, 32  - This is probably restoring `sp` to its previous value.
+5. Now return function is there which means that the value of w0 is retrieved in the main function.
+6. I noticed that after the function call `cmp	w0, 0`, this means that the value is being compared to 0 and if it is not true `bne	.L4,`, the L4 string constant works and it calls the LC1 which prints You loose.
+7. But if it is equal it calls LC0 which prints you win with puts function. It means that if the user input is = 27 then our, w0 = 27 - input = 27 -27 = 0 and it will print the win string.
+8. Thus I got my flag which is 27. Now to convert into hex I used python and have to add extra 0s to complete our flag.
+    ```bash
+    ┌──(neels㉿neel)-[~/PicoCTF/ARM_Assembly1]
+    └─$ python3
+    Python 3.13.3 (main, Apr 10 2025, 21:38:51) [GCC 14.2.0] on linux
+    Type "help", "copyright", "credits" or "license" for more information.
+
+    >>>hex(27)
+    '0x1b'
+    >>>
+    ```
+
+## Flag:
+```
+picoCTF{0000001b}
+```
+
+## Concepts learnt:
+- I learned how ARM assembly manages stack memory and register operations. The use of instructions like `lsl` for left shift, `sdiv` for signed division, and many more functions like str, ldr, add, sub, etc.
+- I learned how to reverse a code that is written in arm assembly and how to get to the input which will give us the win message.
+
+## Notes:
+- Initially, I was not able to figure out what to do. But by watching the video mentioned in resources I got to know about registers and some functions. I googled the other functions  which were not there in the video.
+- Also I submitted my flag with picoCTF{1b} and forgot to mention 0 which after doing gave me the right flag.
+
+## Resources:
+- [Assembly For Reverse Engineering](https://www.youtube.com/watch?v=rXJ9sCVX1zM&list=PL-DxAN1jsRa9151ezNuCbh7UkGS0bMPdw&index=3)
+- Google for some functions like lsl.
+
+
+
+
+
+
+
+
+
+
+
+
 # 3. Vault door 3
 The challenge involves a Java code that manipulates a password string through multiple loops and index operations. Our goal is to get the original password that when processed by the code results in a specific given string.
 
