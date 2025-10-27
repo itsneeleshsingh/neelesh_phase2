@@ -4,8 +4,12 @@ This challenge involves analyzing a network capture file to uncover how a flag w
 ## Solution:
 1. So first I didnt understand what to do so first I began to search about pcapng file as it was the extension of the file named - `tftp.pcapng`. Then I found that wireshark app is used to take a look for these types of file.
 2. So I head on to my linux and then search for wireshark. There was a app so I opened it.
+    <img width="1920" height="1080" alt="image (2)" src="https://github.com/user-attachments/assets/a66f01a7-8d73-4384-b56e-f6a4566ebd7c" />
+
 3. I browsed through different protocol layers and packet details, but I was not abke to do anything. Then I noticed in the hex view a mention of `instruction.txt`, which suggested there might be files transferred that I could download. So after googling I found that we can download all the files from File > objects something.  
 4. I went to `File > Export Objects > TFTP`(I found tftp options as my file name was that and it was a luck) to see if I could get any files from the capture. Many files appeared, including an instruction file, 3 images, a plan, and a `.deb` package file. I saved all these files to my local system in a folder.
+    <img width="1920" height="1080" alt="image (3)" src="https://github.com/user-attachments/assets/8b8a10b2-04f3-4826-b5ef-cff86ccb9033" />
+
 5. I read `instructions.txt`, I saw a string of text that was not readable directly. I tried common decoding methods like base64, but they didn't work. Then I remembered that ROT13 or ROT47 is often used like in Citadel CTF.
     ```bash
     ┌──(neels㉿neel)-[~/PicoCTF/TrivialFlagTransfer]
@@ -67,6 +71,7 @@ This challenge involves analyzing a network capture file to uncover how a flag w
 
     picoCTF{h1dd3n_1n_pLa1n_51GHT_18375919}
     ```
+    <img width="1920" height="1080" alt="image (4)" src="https://github.com/user-attachments/assets/c748d658-c37f-4160-a8d6-6289365d08d1" />
 
 ## Flag:
 ```
@@ -91,4 +96,5 @@ picoCTF{h1dd3n_1n_pLa1n_51GHT_18375919}
 - [Rot13 Decoder](https://rot13.com/)
 - [Wireshark Info](https://en.wikipedia.org/wiki/Wireshark)
 - [Steghide Tool Documentation](https://www.kali.org/tools/steghide/)
+
 - Google
