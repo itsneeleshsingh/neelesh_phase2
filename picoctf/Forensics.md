@@ -96,5 +96,83 @@ picoCTF{h1dd3n_1n_pLa1n_51GHT_18375919}
 - [Rot13 Decoder](https://rot13.com/)
 - [Wireshark Info](https://en.wikipedia.org/wiki/Wireshark)
 - [Steghide Tool Documentation](https://www.kali.org/tools/steghide/)
+- Google
 
+
+
+
+
+
+
+# 2. tunn3l v1s10n
+This challenge provides a file and we have to recover or find the hidden flag within this file. We have to explore file metadata, examine the file in hex or manipulate its content to reveal the hidden message.
+
+## Solution:
+1. First, I downloaded the file and checked its type using the command `file tunn3l_v1s10n`. It returned as `data`, so i didnt get any idea.
+2. Since the file type wasnt clear, I thought of trying metadata extraction tools like exiftool like in Citadel. I ran `exiftool` to see if there was any embedded metadata.
+    ```bash
+    ──(neels㉿neel)-[~/PicoCTF/tunn3l]
+    └─$ exiftool tunn3l_v1s10n
+    ExifTool Version Number         : 13.25
+    File Name                       : tunn3l_v1s10n
+    Directory                       : .
+    File Size                       : 2.9 MB
+    File Modification Date/Time     : 2025:10:27 21:50:21+05:30
+    File Access Date/Time           : 2025:10:27 21:50:52+05:30
+    File Inode Change Date/Time     : 2025:10:27 21:50:52+05:30
+    File Permissions                : -rw-rw-r--
+    File Type                       : BMP
+    File Type Extension             : bmp
+    MIME Type                       : image/bmp
+    BMP Version                     : Unknown (53434)
+    Image Width                     : 1134
+    Image Height                    : 306
+    ```
+3. The exiftool output showed that the file was a BMP image with a size of 2.9 MB..
+4. I attempted to open the file as a BMP image using normal explorer, but it showed an error about an unsupported header size. So I suspected something was wrong with the header or hex data.
+5. I opened the file with hexedit to inspect the raw hexadecimal content.
+    ```
+    ┌──(neels㉿neel)-[~/PicoCTF/tunn3l]
+    └─$ hexedit tunn3l_v1s10n
+
+    00000000   42 4D 8E 26  2C 00 00 00  00 00 BA D0  00 00 BA D0  00 00 6E 04  BM.&,.............n.
+    00000014   00 00 32 01  00 00 01 00  18 00 00 00  00 00 58 26  2C 00 25 16  ..2...........X&,.%.
+    00000028   00 00 25 16  00 00 00 00  00 00 00 00  00 00 23 1A  17 27 1E 1B  ..%...........#..'..
+    ```
+6. First I searched on google for some website and found a image:  
+The hex data started with `42 4D`, which is the signature for BMP files, confirming its likely an image. I checked the header fields especially the file size, which was `8E 26 2C 00`. Reversing the bytes and converting to decimal gave 2,893,454 bytes around 2.89 MB matching the size(Which I learnt from google by looking through some random website). I did it using python.
+    ```python
+    >>>int(0x002C268E)
+    2893454
+    ```
+7. I noticed that the header contained incorrect values in some parts, like the offset to the pixel data which didnt match the expected with the image. But somewhere was written that it can be different so I didnt do that. Now leaving some things I saw header something so I selected that part and checked with image - `BA D0 00 00` was given but in image - `28 00 00 00` was given, that is why it was showing error while opening image.
+8. So I changed the value and clicked ctrl+s and ctrl+z to exit. I tried opening it again. The image now displayed properly, but the visible content was not the flag but it was just a fake flag - notaflag{sorry}. Now I was really confused after this, so I decided to look further for hex values.
+9. I then examined the image's header parameters for width and height. The width was `6E 04 00 00` =  0x0000046E and using python = which converts to 1134 pixels(which is I think the px value) and the height was `32 01 00 00` = 0x00000132 which is 306 pixels.
+10. This was really small comparing to the size of the image, so I tried to increase its value but I dont know how to do that. After that I assumed 900 pixels in hex as `0x384` using python, which is `00000384` in hex.
+    ```python
+    >>>hex(900)
+    '0x384'
+    ```
+11. I replaced the height value in the header with `84 03 00 00` - then saved the file.
+12. Opening this modified image revealed the flag:
+
+## Flag:
+```
+picoCTF{qu1t3_a_v13w_2020}
+```
+
+## Concepts learnt:
+- How to identify file types using the `file` command.
+- Extracting and analyzing metadata with `exiftool`.
+- Understanding and interpreting BMP headers, including headers, file size, and image dimensions.
+- Using hex editors to manually inspect and modify binary files.
+- Converting hexadecimal values to decimal using Python.
+- Recognizing how header values influence image dimensions and how to manipulate them.
+
+## Notes:
+- Initially, I thought the file was completely corrupted or non-standard, but examining the header clarified the structure.
+- I experimented with different height values that was - 400 but after that 900 - to reveal the full image containing the flag.
+
+## Resources:
+- [Image header details](https://engineering.purdue.edu/ece264/19sp/hw/HW11)
 - Google
