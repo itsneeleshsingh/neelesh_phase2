@@ -130,6 +130,8 @@ This challenge provides a file and we have to recover or find the hidden flag wi
     ```
 3. The exiftool output showed that the file was a BMP image with a size of 2.9 MB..
 4. I attempted to open the file as a BMP image using normal explorer, but it showed an error about an unsupported header size. So I suspected something was wrong with the header or hex data.
+    <img width="1920" height="1080" alt="image (5)" src="https://github.com/user-attachments/assets/fa3b8c3c-5a68-417e-aa6d-e402aa31fc39" />
+
 5. I opened the file with hexedit to inspect the raw hexadecimal content.
     ```
     ┌──(neels㉿neel)-[~/PicoCTF/tunn3l]
@@ -140,6 +142,9 @@ This challenge provides a file and we have to recover or find the hidden flag wi
     00000028   00 00 25 16  00 00 00 00  00 00 00 00  00 00 23 1A  17 27 1E 1B  ..%...........#..'..
     ```
 6. First I searched on google for some website and found a image:  
+    <img width="960" height="720" alt="image (6)" src="https://github.com/user-attachments/assets/d9da1cab-7f2f-4721-84a4-272dab384066" />
+    (I found this image on website mentioned in references while searching on net)
+
 The hex data started with `42 4D`, which is the signature for BMP files, confirming its likely an image. I checked the header fields especially the file size, which was `8E 26 2C 00`. Reversing the bytes and converting to decimal gave 2,893,454 bytes around 2.89 MB matching the size(Which I learnt from google by looking through some random website). I did it using python.
     ```python
     >>>int(0x002C268E)
@@ -147,6 +152,8 @@ The hex data started with `42 4D`, which is the signature for BMP files, confirm
     ```
 7. I noticed that the header contained incorrect values in some parts, like the offset to the pixel data which didnt match the expected with the image. But somewhere was written that it can be different so I didnt do that. Now leaving some things I saw header something so I selected that part and checked with image - `BA D0 00 00` was given but in image - `28 00 00 00` was given, that is why it was showing error while opening image.
 8. So I changed the value and clicked ctrl+s and ctrl+z to exit. I tried opening it again. The image now displayed properly, but the visible content was not the flag but it was just a fake flag - notaflag{sorry}. Now I was really confused after this, so I decided to look further for hex values.
+    <img width="1920" height="1080" alt="image (7)" src="https://github.com/user-attachments/assets/3bf10326-0e1f-4b3b-ba7f-7fa80dc34fd9" />
+
 9. I then examined the image's header parameters for width and height. The width was `6E 04 00 00` =  0x0000046E and using python = which converts to 1134 pixels(which is I think the px value) and the height was `32 01 00 00` = 0x00000132 which is 306 pixels.
 10. This was really small comparing to the size of the image, so I tried to increase its value but I dont know how to do that. After that I assumed 900 pixels in hex as `0x384` using python, which is `00000384` in hex.
     ```python
@@ -155,6 +162,8 @@ The hex data started with `42 4D`, which is the signature for BMP files, confirm
     ```
 11. I replaced the height value in the header with `84 03 00 00` - then saved the file.
 12. Opening this modified image revealed the flag:
+    <img width="1920" height="1080" alt="image (8)" src="https://github.com/user-attachments/assets/fe871bb3-09e7-4f11-9d19-13bf22faaf27" />
+
 
 ## Flag:
 ```
@@ -175,4 +184,5 @@ picoCTF{qu1t3_a_v13w_2020}
 
 ## Resources:
 - [Image header details](https://engineering.purdue.edu/ece264/19sp/hw/HW11)
+
 - Google
