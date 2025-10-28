@@ -184,5 +184,69 @@ picoCTF{qu1t3_a_v13w_2020}
 
 ## Resources:
 - [Image header details](https://engineering.purdue.edu/ece264/19sp/hw/HW11)
-
 - Google
+
+
+
+
+
+
+
+# 3. m00nwalk
+This challenge involves decoding a message that appears to be encoded or hidden in some way, related to the theme of the moon.
+
+## Solution:
+1. At first, I was unable to figure out how to decode the message.
+2. The hint mentioned `How did pictures from the moon landing get sent back to Earth?` so I tried on net and the first search result was a Wikipedia page where SSTV (Slow Scan Television) was mentioned. 
+3. I searched randomly for `SSTV decode` on the internet and found a GitHub repo at https://github.com/colaclanth/sstv that provides tools for decoding SSTV signals. There was also a website coming but I tried that later(and It was really very easy).
+4. I cloned the repository with the command: `git clone https://github.com/colaclanth/sstv.git`.  
+5. Then, I navigated to the directory and installed the necessary setup with:  
+    ```bash
+    ┌──(neels㉿neel)-[~/PicoCTF/m00nwalk/sstv]
+    └─$ sudo python3 setup.py install
+    ```  
+6. I went to my location where wav file was and ran the command as was given in README file of repo.
+    ```bash
+    ┌──(neels㉿neel)-[~/PicoCTF/m00nwalk/sstv/sstv]
+    └─$ cd ~/PicoCTF/m00nwalk
+
+    ┌──(neels㉿neel)-[~/PicoCTF/m00nwalk]
+    └─$ ls
+    message.wav  sstv
+
+    ┌──(neels㉿neel)-[~/PicoCTF/m00nwalk]
+    └─$ sstv -d message.wav
+
+    [sstv] Searching for calibration header... Found!
+
+    [sstv] Detected SSTV mode Scottie 1
+    [sstv] Decoding image...   [############################################################] 100%
+    [sstv] Drawing image data...
+    [sstv] ...Done!
+    ```  
+7. The tool detected the mode as Scottie 1 and decoded the image successfully.  
+    ```bash
+    ┌──(neels㉿neel)-[~/PicoCTF/m00nwalk]
+    └─$ ls
+
+    message.wav  result.png  sstv
+    ```
+8. I opened the generated image (result.png) and I found the flag written there: `picoCTF{beep_boop_im_in_space}`.  
+
+## Flag:
+```
+picoCTF{beep_boop_im_in_space}
+```  
+
+## Concepts learnt:
+- Understanding the use of SSTV (Slow Scan Television) for transmitting images over radio signals.
+- Learning how to use available tools to decode audio files that contain encoded images.
+
+## Notes:
+- Initially, I performed some exiftools and binwalk to find out some things but after some trials I used the hint.  
+- There were some issues while installing the setup.py as I forgot to mention sudo before the command.
+- Afterward I also tried the same question with a online website - [Online SSTV Decoder](https://sstv-decoder.mathieurenaud.fr/)
+
+## Resources:
+- [SSTV Decoder Repo](https://github.com/colaclanth/sstv)
+- [Wikipedia site for Hint that I used](https://en.wikipedia.org/wiki/Apollo_11_missing_tapes)
