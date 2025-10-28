@@ -255,5 +255,4 @@ picoCTF{beep_boop_im_in_space}
 
 ## Resources:
 - [SSTV Decoder Repo](https://github.com/colaclanth/sstv)
-
 - [Wikipedia site for Hint that I used](https://en.wikipedia.org/wiki/Apollo_11_missing_tapes)
