@@ -224,6 +224,8 @@ This challenge involves decoding a message that appears to be encoded or hidden 
     [sstv] Drawing image data...
     [sstv] ...Done!
     ```  
+    <img width="1920" height="1080" alt="image (9)" src="https://github.com/user-attachments/assets/165b9431-a2db-4de4-abbd-06e509726e05" />
+
 7. The tool detected the mode as Scottie 1 and decoded the image successfully.  
     ```bash
     ┌──(neels㉿neel)-[~/PicoCTF/m00nwalk]
@@ -231,7 +233,9 @@ This challenge involves decoding a message that appears to be encoded or hidden 
 
     message.wav  result.png  sstv
     ```
-8. I opened the generated image (result.png) and I found the flag written there: `picoCTF{beep_boop_im_in_space}`.  
+8. I opened the generated image (result.png) and I found the flag written there: `picoCTF{beep_boop_im_in_space}`.
+   <img width="1920" height="1080" alt="image (10)" src="https://github.com/user-attachments/assets/9b167a9a-a7aa-4545-b65b-548e4e2250b8" />
+
 
 ## Flag:
 ```
@@ -246,7 +250,10 @@ picoCTF{beep_boop_im_in_space}
 - Initially, I performed some exiftools and binwalk to find out some things but after some trials I used the hint.  
 - There were some issues while installing the setup.py as I forgot to mention sudo before the command.
 - Afterward I also tried the same question with a online website - [Online SSTV Decoder](https://sstv-decoder.mathieurenaud.fr/)
+  <img width="1920" height="1080" alt="image (11)" src="https://github.com/user-attachments/assets/784a678e-75fa-4182-8ff3-8e8a83a6c5a7" />
+
 
 ## Resources:
 - [SSTV Decoder Repo](https://github.com/colaclanth/sstv)
+
 - [Wikipedia site for Hint that I used](https://en.wikipedia.org/wiki/Apollo_11_missing_tapes)
