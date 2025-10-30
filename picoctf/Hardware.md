@@ -42,12 +42,18 @@ This challenge involves working with a file that has an unfamiliar extension (.s
 ## Solution:
 1. First, I opened the `.sal` file, but it appeared to contain some binary data that I could not interpret directly.  
 2. I searched for the `.sal` extension on Google, and the top result was related to an application called Logic 2, which is used for logic analysis and signal decoding. It immediately clicked as the question name was also the same.
+    <img width="1919" height="579" alt="image (3)" src="https://github.com/user-attachments/assets/579343fc-04aa-45cc-b903-489cfaca064a" />
+
 3. I installed Logic 2 on my Linux system, changed its permission to make it executable, and then ran it through the terminal.  
 4. It was asking for some connect logic but there was option of `load capture file` - so I clicked on that selected that file and then there was a yellow waveform type of thing like the morse code in citadel.
 5. I zoomed it tried to play but nothing was working. 
 6. Then I googled some documents like how to extract some hidden texts or values and I found a github repo in which in README section something about - `Analyzers` and `Async Serial` was written to read some data from the file.
 7. I clicked on the Analyzer tab in Logic 2, selected the Async Serial analyzer and it had various settings in it. 
+    <img width="1920" height="983" alt="image (4)" src="https://github.com/user-attachments/assets/a96f458a-1d07-4619-b772-f77b0aa52e66" />
+
 8. I was really confused so I selected the channel0 and default settings but nothing worked. Then I did repeatedly but for 3 channel it worked and some texts were written above the waveform.
+    <img width="1920" height="983" alt="image (5)" src="https://github.com/user-attachments/assets/bdf007d0-338d-49ba-b2bf-0ff8429726c6" />
+
 9. Then I was not able to read the whole text but after some trials I found the button to see whole text I copied in a normal text file.
     ```
     on't think he makes any claims of
@@ -61,6 +67,8 @@ This challenge involves working with a file that has an unfamiliar extension (.s
     in language always clear and sometimes picturesque, he unfolded before
     us.  He told us of t
     ```
+    <img width="978" height="939" alt="image (6)" src="https://github.com/user-attachments/assets/bc0dbe0e-ef89-4585-9767-d529a2ff0b0a" />
+
 10. And there was a flag type of text which was the flag.
 
 ## Flag:
@@ -78,4 +86,5 @@ FCSC{b1dee4eeadf6c4e60aeb142b0b486344e64b12b40d1046de95c89ba5e23a9925}
 
 ## Resources:
 - [Saleae Output Parser GitHub Repository](https://github.com/idaholab/Saleae_Output_Parser)  
+
 - [Logic 2 download page](https://www.saleae.com/pages/downloads?srsltid=AfmBOooTHR-DtKVtqo3zATR45Mbo3okc0WhNmuRNUDNLk64ARmGDXE7E)
