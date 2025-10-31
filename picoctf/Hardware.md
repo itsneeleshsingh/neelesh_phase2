@@ -88,3 +88,109 @@ FCSC{b1dee4eeadf6c4e60aeb142b0b486344e64b12b40d1046de95c89ba5e23a9925}
 - [Saleae Output Parser GitHub Repository](https://github.com/idaholab/Saleae_Output_Parser)  
 
 - [Logic 2 download page](https://www.saleae.com/pages/downloads?srsltid=AfmBOooTHR-DtKVtqo3zATR45Mbo3okc0WhNmuRNUDNLk64ARmGDXE7E)
+
+
+
+
+
+
+
+
+
+
+
+# 3. Bare Metal Alchemist
+This challenge involves analyzing a binary file that is encrypted. The goal is to identify the hidden flag within the binary. It involves some trial and error as well as pattern matching, to find the correct key and decode the flag.
+
+## Solution:
+1. First, I tried using `binwalk` on the binary file to see if there were any embedded compressed or filesystem data but nothing useful came up. Next, I used the `strings` command to look for any readable text, but again no flag was visible.
+2. I uploaded the binary to an online decompiler that I used previously during Citadel CTF, It has decompilers such as Ghidra, Reko, BinaryNinja, and RecStudio. I  i uploaded that file in that and began to read all the codes.
+3. After I went through reading all the codes one by one and I noticed in ghidra that some random random byte constants are used. I saw code snippets like `bVar5 = *(byte *)(uint3)uVar2;` and conditional checks involving byte values.
+    ```
+    Var5 = *(byte *)(uint3)uVar2;
+    if ((bVar5 == 0) || (bVar5 == 0xa5)) goto LAB_code_000131;
+    bVar4 = DAT_mem_0009;
+    if (((bVar4 ^ bVar4 * '\x02') & 4) == 0) break;
+    bVar5 = (bVar5 ^ 0xa5) - 0x30;
+    bVar4 = 0;
+    if (bVar5 < 0x4e) {
+    bVar4 = *(byte *)CONCAT11(1,bVar5);
+    }
+    ```
+4. I opened Reko and observed several global byte variables with assigned values.
+    ```
+    byte g_b006E = 222; // 006E
+    byte g_b007A = 0x96; // 007A
+    byte g_b0080 = 0xC9; // 0080
+    byte g_b0081 = 0x96; // 0081
+    byte g_b00B0 = 0x0D; // 00B0
+    byte g_b00B1 = 0x92; // 00B1
+    byte g_b00C1 = 0x92; // 00C1
+    ```
+    There were many constants so I began to search why they are being used and I got to know something about - `encryption keys` (for XOR, AES, etc.), so first I went for What is XOR using a youtube video.
+5. I works something like -   
+`decrypted_byte = encrypted_byte ^ key_byte;`  
+I tried for 1 byte XOR decryption and to automate this, I wrote a Python script that reads the binary data (`firmware.elf`) and attempts XOR decryption with all possible byte values from 1 to 255.
+    ```python
+    import re, string
+
+    data = open("firmware.elf", "rb").read()
+    pat = re.compile(rb"[A-Za-z0-9_]{1,20}\{[A-Za-z0-9_\-\+\=\/\\\.\s]{4,200}\}")
+    printable = set(string.printable)
+
+    for k in range(1,256):
+        dec = bytes(b ^ k for b in data)
+        m = pat.search(dec)
+        if m:
+            s = m.group().decode(errors="ignore").strip()
+            if "{" in s and "}" in s and all(ch in printable for ch in s):
+                print("key:", k, s)
+
+    ```
+6. The script uses a regex pattern to search for strings resembling typical flag formats, such as `SOMETHING{...}`. For each key, it XORs all bytes and searches for a match. If a match is found, it prints out the key and the decoded string.
+7. Running the script, It gave multiple flag strings, but `TFCCTF{Th1s_1s_som3_s1mpl3_4rdu1no_f1rmw4re}` was the flag with key 165.
+    ```bash
+    ┌──(neels㉿neel)-[~/PicoCTF/BareMetalAlchemist]
+    └─$ python [testing.py](http://testing.py/)
+
+    key: 9 mfVjelh{VkzzVz}
+    key: 11 T{ydlyjf
+    TT}
+    key: 19 LL{vrcLv}
+    key: 24 GG{lwjkG}
+    key: 26 lh5{lh/5vsx}
+    key: 30 Aqh{lxrqiA}
+    key: 46 ojc{v.ojm.ojm}
+    key: 52 4kkqqdf{ykfqs}
+    key: 56 yt8{tshj8kj}
+    key: 57 9mnxtk9mn{k9mnzk9mnjk9mn}
+    key: 66 HBB{vBALxIyI
+    Q}
+    key: 68 W{HFNDD}
+    key: 71 TxKEMGG{sGDI}
+    key: 107 mzjyjhcpcNcxnkkkjzk{mzjyjhcpcNcxnkkk}
+    key: 109 hmmm{mmmom}
+    key: 118 vv{BvuxL}
+    key: 121 yy{yyyyy}
+    key: 122 zzzzzzzzxuzzz{rymzzzx}
+    key: 165 TFCCTF{Th1s_1s_som3_s1mpl3_4rdu1no_f1rmw4re}
+    ```
+
+## Flag:
+```
+TFCCTF{Th1s_1s_som3_s1mpl3_4rdu1no_f1rmw4re}
+```
+
+## Concepts learnt:
+- Analyzing binary files with tools like Ghidra, Reko, and online decompilers.
+- Recognizing common techniques such as XOR encryption/decryption.
+- Using regex in Python to match potential flag formats(I searched google for that).
+- Automating decryption attempts with XOR keys.
+
+## Notes:
+- Initially, I used binwalk, strings and many more methods but none of those were working.
+- While writing the python code, I dont know the fixed flag format so I was very confused how to find a flag string in that.
+
+## Resources:
+- [Online Decompiler](https://dogbolt.org/?id=3eaba4d3-407f-4b76-b3b0-de51612bf74d#Ghidra=246&Reko=7)
+- [YouTube XOR Decryption Tutorial](https://www.youtube.com/watch?v=h7Cgx-pn9bw)
