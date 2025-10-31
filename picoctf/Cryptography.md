@@ -194,3 +194,80 @@ picoCTF{custom_d2cr0pt6d_49fbee5b}
 - [GeeksforGeeks: enumerate in Python](https://www.geeksforgeeks.org/python/enumerate-in-python/)
 - [XOR Video](https://www.youtube.com/watch?v=h7Cgx-pn9bw)
 
+
+
+
+
+
+
+
+
+
+# 3. miniRSA
+This challenge involves decrypting a message encrypted with RSA where the public exponent e is very small. The ciphertext provided is a large number, and the goal is to recover the original plaintext message that contains the flag.
+
+## Solution:
+1. So first we were given with all the values of N, e and c and we have to find the actual m - message. I knew that in RSA encryption, the ciphertext `cipher = (message^e) mod n`. Since e is 3, the encryption simplifies to `cipher = message^3` when the message is smaller than n, which is often the case with small e values. 
+2. But if the message itself is a larger, then:
+    ```
+    message = (cipher + k*n)^(1/3)
+    where k = 0,1,2,3,4,5 and so on..
+    ```
+3. Now I focused on what I already had and what I needed to find. I had cipher, n, and I knew e = 3. So the remaining part was just the calculation, which I decided to do using a Python script.  
+I then searched on net and found that -> `e=3` is vulnerable and easy to crack using `eth root` in the wikipedia page of the hint provided.
+4. The first step was to take the cube root of my ciphered content (which is a very big number). So I started to find how to do that and came upon a python library - `gmpy2`, which provides fast and precise mathematical functions like `iroot` for integer roots.
+5. I created a virtual environment, activated it and installed `gmpy2`.
+    ```bash
+    ┌──(neels㉿neel)-[~/PicoCTF/miniRSA]
+    └─$ python3 -m venv ./venv
+
+    ┌──(neels㉿neel)-[~/PicoCTF/miniRSA]
+    └─$ source venv/bin/activate
+
+    ┌──(venv)─(neels㉿neel)-[~/PicoCTF/miniRSA]
+    └─$ pip install gmpy2
+    ```
+6. In code I imported it and copied all the values of  n,e and c from the file and started writing from 1 to range 5000(doont know but taken it approx) for loop.  
+Then I applied the `iroot` function in `gmpy2` and if root found then storing that binary number in `messg`.  
+Then converted that messg to hex and to ascii form to get the flag.
+    ```python
+    import gmpy2
+
+    n=29331922499794985782735976045591164936683059380558950386560160105740343201513369939006307531165922708949619162698623675349030430859547825708994708321803705309459438099340427770580064400911431856656901982789948285309956111848686906152664473350940486507451771223435835260168971210087470894448460745593956840586530527915802541450092946574694809584880896601317519794442862977471129319781313161842056501715040555964011899589002863730868679527184420789010551475067862907739054966183120621407246398518098981106431219207697870293412176440482900183550467375190239898455201170831410460483829448603477361305838743852756938687673
+    e=3
+    c=2205316413931134031074603746928247799030155221252519872650073010782049179856976080512716237308882294226369300412719995904064931819531456392957957122459640736424089744772221933500860936331459280832211445548332429338572369823704784625368933
+
+    for k in range(5000):
+        messg,root = gmpy2.iroot(c+k*n,e)
+        if root:
+            temp=hex(messg)
+            print(temp)
+            ascii_text = bytes.fromhex(temp[2:]).decode('ascii')
+            print(ascii_text)
+    ```
+7. I ran the script and the flag was shown.
+    ```bash
+    ┌──(venv)─(neels㉿neel)-[~/PicoCTF/miniRSA]
+    └─$ /usr/bin/python /home/neels/PicoCTF/miniRSA/decode.py
+    0x7069636f4354467b6e3333645f615f6c41726733725f655f63636161373737367d
+    picoCTF{n33d_a_lArg3r_e_ccaa7776}
+    ```
+
+## Flag:
+```
+picoCTF{n33d_a_lArg3r_e_ccaa7776}
+```
+
+## Concepts learnt:
+- RSA encryption and decryption basics, especially for small exponents.
+- Vulnerability of RSA with small e values, specifically e=3.
+- How to find the integer root of a large number using `gmpy2.iroot`.
+- Converting hexadecimal strings to ASCII for message decoding.
+
+## Notes:
+- Initially, to find root i found a method with binary search approach to find the root but gmpy2 was easy and fast.
+- I also experimented with different ranges for `k` and found that 0 to 5000 was sufficient in this case. 
+
+## Resources:
+- [gmpy2 library](https://pypi.org/project/gmpy2/)
+- [RSA cryptosystem Wikipedia](https://en.wikipedia.org/wiki/RSA_cryptosystem)
