@@ -215,6 +215,8 @@ This challenge involves decrypting a message encrypted with RSA where the public
     ```
 3. Now I focused on what I already had and what I needed to find. I had cipher, n, and I knew e = 3. So the remaining part was just the calculation, which I decided to do using a Python script.  
 I then searched on net and found that -> `e=3` is vulnerable and easy to crack using `eth root` in the wikipedia page of the hint provided.
+    <img width="1919" height="993" alt="image (12)" src="https://github.com/user-attachments/assets/51edfeca-1074-428c-864c-bca7611f3864" />
+
 4. The first step was to take the cube root of my ciphered content (which is a very big number). So I started to find how to do that and came upon a python library - `gmpy2`, which provides fast and precise mathematical functions like `iroot` for integer roots.
 5. I created a virtual environment, activated it and installed `gmpy2`.
     ```bash
@@ -252,6 +254,8 @@ Then converted that messg to hex and to ascii form to get the flag.
     0x7069636f4354467b6e3333645f615f6c41726733725f655f63636161373737367d
     picoCTF{n33d_a_lArg3r_e_ccaa7776}
     ```
+    <img width="1920" height="1080" alt="image (13)" src="https://github.com/user-attachments/assets/a5ef3b22-a662-42ac-9154-db0d08425a7e" />
+
 
 ## Flag:
 ```
@@ -270,4 +274,5 @@ picoCTF{n33d_a_lArg3r_e_ccaa7776}
 
 ## Resources:
 - [gmpy2 library](https://pypi.org/project/gmpy2/)
+
 - [RSA cryptosystem Wikipedia](https://en.wikipedia.org/wiki/RSA_cryptosystem)
