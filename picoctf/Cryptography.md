@@ -144,8 +144,10 @@ This challenge involves analyzing a given code file and an encrypted file to und
    print(key)
    ```
    The output was `22`.
-5. Next I copied the list of the cipher values. For each value I divided by `22 * 311` to obtain the ASCII code, then converted it to characters and joined them to get the original string.
-6. After reconstructing the string, I remembered that the `dynamic_xor_encrypt()` function reversed the plaintext. So I XORed each character with the key `trudeau` in a repeating pattern, then reversed the string to get the original message.
+   <img width="1920" height="1080" alt="image (10)" src="https://github.com/user-attachments/assets/9a34dcd6-07dc-4a03-b2e4-4b55b5f0e222" />
+
+6. Next I copied the list of the cipher values. For each value I divided by `22 * 311` to obtain the ASCII code, then converted it to characters and joined them to get the original string.
+7. After reconstructing the string, I remembered that the `dynamic_xor_encrypt()` function reversed the plaintext. So I XORed each character with the key `trudeau` in a repeating pattern, then reversed the string to get the original message.
     ```python
     cipher=[61578, 109472, 437888, 6842, 0, 20526, 129998, 526834, 478940, 287364, 0, 567886, 143682, 34210, 465256, 0, 150524, 588412, 6842, 424204, 164208, 184734, 41052, 41052, 116314, 41052, 177892, 348942, 218944, 335258, 177892, 47894, 82104, 116314]
     updated_cipher=[]
@@ -162,7 +164,7 @@ This challenge involves analyzing a given code file and an encrypted file to und
     deciphered += chr(ord(char) ^ ord(key_char))
     print(deciphered[::-1])
     ```
-7. The final output was the flag.
+8. The final output was the flag.
     ```bash
     ┌──(neels㉿neel)-[~]
     └─$ /usr/bin/python /home/neels/PicoCTF/Customencryption/dec.py
@@ -170,6 +172,8 @@ This challenge involves analyzing a given code file and an encrypted file to und
 
     picoCTF{custom_d2cr0pt6d_49fbee5b}
     ```
+    <img width="1920" height="1080" alt="image (11)" src="https://github.com/user-attachments/assets/31689278-835e-451d-be25-39f6924a1963" />
+
    
 ## Flag:
 ```
@@ -189,3 +193,4 @@ picoCTF{custom_d2cr0pt6d_49fbee5b}
 ## Resources:
 - [GeeksforGeeks: enumerate in Python](https://www.geeksforgeeks.org/python/enumerate-in-python/)
 - [XOR Video](https://www.youtube.com/watch?v=h7Cgx-pn9bw)
+
