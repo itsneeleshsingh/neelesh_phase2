@@ -82,7 +82,9 @@ This challenge involves exploiting an RSA encryption system that allows encrypti
     >>> string=object.decode('ascii')
     >>> print(string)
     92d53
-    ```  
+    ```
+    <img width="693" height="466" alt="image (9)" src="https://github.com/user-attachments/assets/367fe12d-0237-4ba6-af7f-d33daa5b533d" />
+
 9. Using `92d53` as the password, I used `openssl` to decrypt the `secret.enc` file with the command(as it was mentioned in hint 2):  
     ```
     openssl enc -aes-256-cbc -d -in secret.enc -k 92d53
@@ -114,4 +116,5 @@ picoCTF{su((3ss_(r@ck1ng_r3@_92d53250}
 
 ## Resources:
 - [RSA Explained - Cryptography Course](https://ctf101.org/cryptography/what-is-rsa/)  
+
 - [YouTube Video on RSA Attacks](https://www.youtube.com/watch?v=Pq8gNbvfaoM)
