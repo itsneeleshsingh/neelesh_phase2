@@ -105,6 +105,8 @@ This challenge involves analyzing a binary file that is encrypted. The goal is t
 ## Solution:
 1. First, I tried using `binwalk` on the binary file to see if there were any embedded compressed or filesystem data but nothing useful came up. Next, I used the `strings` command to look for any readable text, but again no flag was visible.
 2. I uploaded the binary to an online decompiler that I used previously during Citadel CTF, It has decompilers such as Ghidra, Reko, BinaryNinja, and RecStudio. I  i uploaded that file in that and began to read all the codes.
+    <img width="1919" height="900" alt="image (7)" src="https://github.com/user-attachments/assets/693eba53-6648-4bc3-b86f-ed71923340e9" />
+
 3. After I went through reading all the codes one by one and I noticed in ghidra that some random random byte constants are used. I saw code snippets like `bVar5 = *(byte *)(uint3)uVar2;` and conditional checks involving byte values.
     ```
     Var5 = *(byte *)(uint3)uVar2;
@@ -175,6 +177,8 @@ I tried for 1 byte XOR decryption and to automate this, I wrote a Python script 
     key: 122 zzzzzzzzxuzzz{rymzzzx}
     key: 165 TFCCTF{Th1s_1s_som3_s1mpl3_4rdu1no_f1rmw4re}
     ```
+    <img width="1920" height="1080" alt="image (8)" src="https://github.com/user-attachments/assets/cb732be8-f7bd-4e58-bd60-eb3ff2765f68" />
+
 
 ## Flag:
 ```
@@ -193,4 +197,5 @@ TFCCTF{Th1s_1s_som3_s1mpl3_4rdu1no_f1rmw4re}
 
 ## Resources:
 - [Online Decompiler](https://dogbolt.org/?id=3eaba4d3-407f-4b76-b3b0-de51612bf74d#Ghidra=246&Reko=7)
+
 - [YouTube XOR Decryption Tutorial](https://www.youtube.com/watch?v=h7Cgx-pn9bw)
