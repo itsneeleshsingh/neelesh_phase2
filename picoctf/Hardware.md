@@ -199,3 +199,4 @@ TFCCTF{Th1s_1s_som3_s1mpl3_4rdu1no_f1rmw4re}
 - [Online Decompiler](https://dogbolt.org/?id=3eaba4d3-407f-4b76-b3b0-de51612bf74d#Ghidra=246&Reko=7)
 
 - [YouTube XOR Decryption Tutorial](https://www.youtube.com/watch?v=h7Cgx-pn9bw)
+- [Info about Regex](https://www.youtube.com/watch?v=UQQsYXa1EHs)
