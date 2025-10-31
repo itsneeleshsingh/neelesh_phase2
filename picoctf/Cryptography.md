@@ -116,5 +116,76 @@ picoCTF{su((3ss_(r@ck1ng_r3@_92d53250}
 
 ## Resources:
 - [RSA Explained - Cryptography Course](https://ctf101.org/cryptography/what-is-rsa/)  
-
 - [YouTube Video on RSA Attacks](https://www.youtube.com/watch?v=Pq8gNbvfaoM)
+
+
+
+
+
+
+# 2. Custom encryption
+This challenge involves analyzing a given code file and an encrypted file to understand the encryption process used. The goal is to reverse engineer the encoding steps and create a decoding function that can decrypt the contents of the encrypted file.
+
+## Solution:
+1. First, I received two files- a Python script and the encrypted data. The script contained functions that performed encryption, so I started by examining the code line by line to understand the process.
+2. I identified two main functions: `dynamic_xor_encrypt()` and `encrypt()`. The first function reverses the message and then applies XOR, while the second transforms characters by multiplying ASCII values with a key and 311.
+3. To decrypt the data I needed to reverse these steps. I observed that the `encrypt()` function multiplies ASCII values by `key * 311`. To undo this I need to divide the encrypted values by `key * 311`.
+4. To find the key, I used the provided parameters `a`, `b`, `p`, `g` and using python wrote a normal program with same functions(Also we have to use the values given in enc_flag):
+   ```python
+   a = 90
+   b = 26
+   p = 97
+   g = 31
+   def generator(g, x, p):
+       return pow(g, x, p)
+   u = generator(g, a, p)
+   v = generator(g, b, p)
+   key = generator(v, a, p)
+   print(key)
+   ```
+   The output was `22`.
+5. Next I copied the list of the cipher values. For each value I divided by `22 * 311` to obtain the ASCII code, then converted it to characters and joined them to get the original string.
+6. After reconstructing the string, I remembered that the `dynamic_xor_encrypt()` function reversed the plaintext. So I XORed each character with the key `trudeau` in a repeating pattern, then reversed the string to get the original message.
+    ```python
+    cipher=[61578, 109472, 437888, 6842, 0, 20526, 129998, 526834, 478940, 287364, 0, 567886, 143682, 34210, 465256, 0, 150524, 588412, 6842, 424204, 164208, 184734, 41052, 41052, 116314, 41052, 177892, 348942, 218944, 335258, 177892, 47894, 82104, 116314]
+    updated_cipher=[]
+    for i in cipher:
+    updated_cipher.append(chr(int(i/(22*311))))
+    #print(updated_cipher)
+    plain_text = ''.join(updated_cipher)
+    print(plain_text)
+    text_key="trudeau"
+    deciphered = ""
+    key_length = len(text_key)
+    for i,char in enumerate(plain_text):
+    key_char = text_key[i % key_length]
+    deciphered += chr(ord(char) ^ ord(key_char))
+    print(deciphered[::-1])
+    ```
+7. The final output was the flag.
+    ```bash
+    ┌──(neels㉿neel)-[~]
+    └─$ /usr/bin/python /home/neels/PicoCTF/Customencryption/dec.py
+    @MF*SDV>3 1
+
+    picoCTF{custom_d2cr0pt6d_49fbee5b}
+    ```
+   
+## Flag:
+```
+picoCTF{custom_d2cr0pt6d_49fbee5b}
+```
+
+## Concepts learnt:
+- XOR operation properties and how XOR is reversible.
+- Reversing string transformations to decode encrypted messages.
+- Using Python to automate decryption steps and reverse engineer encryption processes.
+
+## Notes:
+- Initially, I did not understand why the values of a and b were given. Eventually I understood it.
+- I was also not able to first get how to reverse that `dynamic_xor_encrypt()` function. But it striked immediately about the reverse property of xor so when decrypting nothing has to be changed there.
+- Some syntax errors were there while coding which I corrected using some basic coding fundamentals.
+
+## Resources:
+- [GeeksforGeeks: enumerate in Python](https://www.geeksforgeeks.org/python/enumerate-in-python/)
+- [XOR Video](https://www.youtube.com/watch?v=h7Cgx-pn9bw)
