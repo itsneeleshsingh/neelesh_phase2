@@ -136,3 +136,45 @@ nite{n0w_y0u_kn0w_ab0ut_PNG_chunk5}
 - [Medium blog on PNG structure](https://medium.com/@0xwan/png-structure-for-beginner-8363ce2a9f73)
 - `man pngcheck` for more information on the command and its use
 - Various online searches related to PNG corruption and recovery techniques.
+
+
+
+
+
+
+
+# 3. RAR of the Abyss
+The challenge revolves around analyzing a network capture file in order to decrypt a RAR file to get the flag.
+
+## Solution:
+1. First, I opened the provided `.pcap` file using Wireshark, a tool I was familiar with from previous CTF challenges.
+   ![image2](images/RARoftheAbyss1.png)
+2. Upon going through the captured packets, I noticed a variety of protocols in use such as TCP,ICMP,etc and started scrolling through them.
+3. I started to look all the packets one by one and at some packets, found some string mentioning Camus and Nietzsche.
+4. During this, I found a string that appeared to be a password: `b3y0ndG00dand3vil` in one of the TCP packets and I was not sure that whether this was the Correct password or not and for what(I was just going through the hint provided).
+   ![image2](images/RARoftheAbyss4.png)
+5. I also located a packet that indicated the presence of a RAR file, as the word "rar" was visible in the contents.
+![image2](images/RARoftheAbyss2.png)
+6. To extract the RAR file, I selected the relevant TCP packet containing the RAR data and followed it by clicking on `Follow > TCP Stream` and then saved the output as `output.rar` in my folder.
+   ![image2](images/RARoftheAbyss3.png)
+7. When I attempted to extract the contents of the RAR file, it prompted me for a password. I entered `b3y0ndG00dand3vil` as password.
+   ![image2](images/RARoftheAbyss5.png)
+8. The extraction was successful, where a `flag.txt` file was there which contained the flag.
+   ![image2](images/RARoftheAbyss6.png)
+
+## Flag:
+```
+nite{thus_sp0k3_th3_n3tw0rk_f0r3ns1cs_4n4lyst}
+```
+
+## Concepts learnt:
+- Extracting RAR files from TCP packets
+- Analyzing packets to retrieve specific strings or data
+- Understanding the usage of network forensics tools like Wireshark
+
+## Notes:
+- Initially, I had trouble finding the RAR file in the packet capture, which led me to consider other methods for viewing binary files which I looked in google and pages.
+- I spent some time exploring different options in Wireshark before deciding to focus on identifying specific streams and strings.
+
+## Resources:
+- [Wireshark Tutorial Blog](https://www.varonis.com/blog/how-to-use-wireshark)
