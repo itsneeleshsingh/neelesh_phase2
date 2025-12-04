@@ -191,8 +191,11 @@ The challenge has flag encrypted as passwords in firefox browser. The task is to
 1. I started by extracting the provided RAR file which had an AD1 file which I first didnt understand what extension is this.
 2. After some research I learned that this type of file can be examined using a program called `FTK Imager`. So I installed this app using its official site.
 3. Upon opening the AD1 file I viewed several files but didnt understand at first of how to open it. I mounted the .ad1 file and tried to look using file browser but nothing was there in that. Then I looked for a video to get how to insert and read ISO file. I took a closer look at the challenge description and realized I was meant to search for passwords in the Firefox folder.
+   ![image3](images/NineTails1.png)
 4. After many explorations, I Navigated to the AppData directory and I found the Mozilla folder containing Firefox, but my initial search under the user `j4gjesg4` yielded no passwords or useful files. So I tried more files to find for json or password files.
+   ![image3](images/NineTails2.png)
 5. A further search led me to the Roaming directory where I accessed the database and JSON files containing the encrypted password information.
+   ![image3](images/NineTails3.png)
 6. To decode the passwords I looked for a suitable tool and found `firepwd` after trying more tools, which is used for cracking passwords.
 7. I installed the necessary Python packages for `firepwd` using the commands:
    ```bash
