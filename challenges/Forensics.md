@@ -178,3 +178,116 @@ nite{thus_sp0k3_th3_n3tw0rk_f0r3ns1cs_4n4lyst}
 
 ## Resources:
 - [Wireshark Tutorial Blog](https://www.varonis.com/blog/how-to-use-wireshark)
+
+
+
+
+
+
+# 4. Nine Tails
+The challenge has flag encrypted as passwords in firefox browser. The task is to locate specific files related to logins and encryption keys. It involves navigating through file directories to uncover credentials that may lead to the flag.
+
+## Solution:
+1. I started by extracting the provided RAR file which had an AD1 file which I first didnt understand what extension is this.
+2. After some research I learned that this type of file can be examined using a program called `FTK Imager`. So I installed this app using its official site.
+3. Upon opening the AD1 file I viewed several files but didnt understand at first of how to open it. I mounted the .ad1 file and tried to look using file browser but nothing was there in that. Then I looked for a video to get how to insert and read ISO file. I took a closer look at the challenge description and realized I was meant to search for passwords in the Firefox folder.
+4. After many explorations, I Navigated to the AppData directory and I found the Mozilla folder containing Firefox, but my initial search under the user `j4gjesg4` yielded no passwords or useful files. So I tried more files to find for json or password files.
+5. A further search led me to the Roaming directory where I accessed the database and JSON files containing the encrypted password information.
+6. To decode the passwords I looked for a suitable tool and found `firepwd` after trying more tools, which is used for cracking passwords.
+7. I installed the necessary Python packages for `firepwd` using the commands:
+   ```bash
+   ┌──(venv)─(neels㉿neel)-[~/CustomQuesCryptonite/Forensics/NineTails]
+   └─$ pip install PyCryptodome
+
+   ┌──(venv)─(neels㉿neel)-[~/CustomQuesCryptonite/Forensics/NineTails]
+   └─$ pip install pyasn1
+   ```
+8. I ran `firepwd.py` with the database file:
+   ```bash
+   ┌──(venv)─(neels㉿neel)-[~/CustomQuesCryptonite/Forensics/NineTails]
+   └─$ python firepwd.py -d .  
+
+   globalSalt: b'b5dbfec66b891e193f516eccaf39209a93634332'
+   SEQUENCE {
+      SEQUENCE {
+      OBJECTIDENTIFIER 1.2.840.113549.1.5.13 pkcs5 pbes2
+      SEQUENCE {
+         SEQUENCE {
+            OBJECTIDENTIFIER 1.2.840.113549.1.5.12 pkcs5 PBKDF2
+            SEQUENCE {
+            OCTETSTRING b'eaa234484d176f2f091e1a9b2162b550a9874bf9ced92daa19c43e058b1328cf'
+            INTEGER b'01'
+            INTEGER b'20'
+            SEQUENCE {
+               OBJECTIDENTIFIER 1.2.840.113549.2.9 hmacWithSHA256
+            }
+            }
+         }
+         SEQUENCE {
+            OBJECTIDENTIFIER 2.16.840.1.101.3.4.1.42 aes256-CBC
+            OCTETSTRING b'c361eb13322fd6004ad463de0ef2'
+         }
+      }
+      }
+      OCTETSTRING b'c2cb6eb12879f4c649458e59d634f355'
+   }
+   clearText b'70617373776f72642d636865636b0202'
+   password check? True
+   SEQUENCE {
+      SEQUENCE {
+      OBJECTIDENTIFIER 1.2.840.113549.1.5.13 pkcs5 pbes2
+      SEQUENCE {
+         SEQUENCE {
+            OBJECTIDENTIFIER 1.2.840.113549.1.5.12 pkcs5 PBKDF2
+            SEQUENCE {
+            OCTETSTRING b'ae2720e0964ce4beabedba40345712df4234f9ac9cd86e53a08982b65abbbd9c'
+            INTEGER b'01'
+            INTEGER b'20'
+            SEQUENCE {
+               OBJECTIDENTIFIER 1.2.840.113549.2.9 hmacWithSHA256
+            }
+            }
+         }
+         SEQUENCE {
+            OBJECTIDENTIFIER 2.16.840.1.101.3.4.1.42 aes256-CBC
+            OCTETSTRING b'e3f13fa968393e84117de43bee0e'
+         }
+      }
+      }
+      OCTETSTRING b'7810f052c04cd95b738f9df37a27fe297c3cc97d3a04ca7a71b89ba111f1dbbf'
+   }
+   clearText b'ab1ccd54c13b1573648a347a6e4c73dcc27af8cb8ad3c74c0808080808080808'
+   decrypting login/password pairs
+   https://www.rehack.xyz:b'warlocksmurf',b'GCTF{m0zarella'
+   https://ctftime.org:b'ilovecheese',b'CHEEEEEEEEEEEEEEEEEEEEEEEEEESE'
+   https://www.reddit.com:b'bluelobster',b'_f1ref0x_'
+   https://www.facebook.com:b'flag',b'SIKE'
+   https://warlocksmurf.github.io:b'Man I Love Forensics',b'p4ssw0rd}'
+   ```
+9. The tool processed the data and successfully returned the decrypted password pairs revealing the flag.
+
+## Flag:
+```
+GCTF{m0zarella_f1ref0x_p4ssw0rd}
+```
+
+## Concepts learnt:
+- How to extract files from an AD1 format using FTK Imager.
+- Understanding the file structure of Firefox password storage including where passwords are located.
+- Utilizing forensic tools like `firepwd` for decrypting Firefox-stored passwords.
+- Importance of navigating different directories like AppData and Roaming to locate hidden files.
+
+## Notes:
+- Initially, I attempted to use `firefox_decrypt.py` which failed due to missing the profile location which I did not understand.
+   ```bash
+   ┌──(venv)─(neels㉿neel)-[~/CustomQuesCryptonite/Forensics/NineTails]
+   └─$ python firefox_decrypt.py .
+   2025-12-04 22:46:52,112 - WARNING - profile.ini not found in .
+   2025-12-04 22:46:52,112 - WARNING - Continuing and assuming '.' is a profile location
+   2025-12-04 22:46:52,113 - ERROR - Couldn't initialize NSS, maybe '.' is not a valid profile?
+   ```
+
+## Resources:
+- Steps to load a file in FTK Imager: [YouTube Link](https://www.youtube.com/watch?v=CPup3ClC7nE)
+- Firepwd repository: [GitHub - firepwd](https://github.com/lclevy/firepwd/tree/master)
+- Information on Firefox password storage: [Super User Discussion](https://superuser.com/questions/267005/where-are-my-firefox-passwords-saved)
