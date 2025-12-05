@@ -294,3 +294,319 @@ GCTF{m0zarella_f1ref0x_p4ssw0rd}
 - Steps to load a file in FTK Imager: [YouTube Link](https://www.youtube.com/watch?v=CPup3ClC7nE)
 - Firepwd repository: [GitHub - firepwd](https://github.com/lclevy/firepwd/tree/master)
 - Information on Firefox password storage: [Super User Discussion](https://superuser.com/questions/267005/where-are-my-firefox-passwords-saved)
+
+
+
+
+
+
+
+
+
+# 5. ReDraw
+This challenge involves recovering data from a memory dump that was retrieved after a system crash during a drawing session. We have to look into command window that briefly appeared before the crash. We have to find three distinct flags each corresponding to different findings in the memory.
+
+## Solution:
+1. I began by downloading the provided RAR file and extracted its contents which gave `MemoryDump_Lab1.raw` file.
+2. Following the hints in the challenge description, I recognized that I needed to use Volatility 2 for analysis which I searched on net to find its usecases and found that it is a Memory Forensic tool.
+3. I downloaded the Linux version of Volatility from [GitHub](https://github.com/volatilityfoundation). I renamed the Volatility application to a simpler name, `vol` for easy use in CLI.
+4. To get familiar with Volatility, I read over the [documentation](https://github.com/volatilityfoundation/volatility/wiki/Command-Reference) which was in there github repo itself to get an overview of its basic commands.
+5. Still I was feeling confused about the commands which were there so many and I found an blog that offered better explanations on how to perform memory analysis.
+6. I started my exploration by running `imageinfo` to get details about the memory dump(as mentioned by the youtube video while downloading Votality).
+   ```bash
+   ┌──(neels㉿neel)-[~/CustomQuesCryptonite/Forensics/ReDraw]
+   └─$ ./vol -f MemoryDump_Lab1.raw imageinfo
+   Volatility Foundation Volatility Framework 2.6
+   INFO    : volatility.debug    : Determining profile based on KDBG search...
+   Suggested Profile(s) : Win7SP1x64, Win7SP0x64, Win2008R2SP0x64, Win2008R2SP1x64_23418, Win2008R2SP1x64, Win7SP1x64_23418
+   AS Layer1 : WindowsAMD64PagedMemory (Kernel AS)
+   AS Layer2 : FileAddressSpace (/home/neels/CustomQuesCryptonite/Forensics/ReDraw/MemoryDump_Lab1.raw)
+   PAE type : No PAE
+   DTB : 0x187000L
+   KDBG : 0xf800028100a0L
+   Number of Processors : 1
+   Image Type (Service Pack) : 1
+   KPCR for CPU 0 : 0xfffff80002811d00L
+   KUSER_SHARED_DATA : 0xfffff78000000000L
+   Image date and time : 2019-12-11 14:38:00 UTC+0000
+   Image local date and time : 2019-12-11 20:08:00 +0530
+   ```
+7. Based on the output I detected the appropriate profile to use(which was the first one) even I was not sure and I included `-profile=Win7SP1x64` in subsequent commands.
+
+### Flag 1
+8. I inferred from the challenge description that a command window was active before the crash, so I ran `pslist` to confirm running processes from the memory.
+   ```bash
+   ┌──(neels㉿neel)-[~/CustomQuesCryptonite/Forensics/ReDraw]
+   └─$ ./vol -f MemoryDump_Lab1.raw --profile=Win7SP1x64 pslist
+   Volatility Foundation Volatility Framework 2.6
+   Offset(V)          Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                          Exit
+
+   ---
+
+   0xfffffa8000ca0040 System                    4      0     80      570 ------      0 2019-12-11 13:41:25 UTC+0000
+
+   0xfffffa800148f040 smss.exe                248      4      3       37 ------      0 2019-12-11 13:41:25 UTC+0000
+
+   0xfffffa800154f740 csrss.exe               320    312      9      457      0      0 2019-12-11 13:41:32 UTC+0000
+
+   0xfffffa8000ca81e0 csrss.exe               368    360      7      199      1      0 2019-12-11 13:41:33 UTC+0000
+
+   0xfffffa8001c45060 psxss.exe               376    248     18      786      0      0 2019-12-11 13:41:33 UTC+0000
+
+   0xfffffa8001c5f060 winlogon.exe            416    360      4      118      1      0 2019-12-11 13:41:34 UTC+0000
+
+   0xfffffa8001c5f630 wininit.exe             424    312      3       75      0      0 2019-12-11 13:41:34 UTC+0000
+
+   0xfffffa8001c98530 services.exe            484    424     13      219      0      0 2019-12-11 13:41:35 UTC+0000
+
+   0xfffffa8001ca0580 lsass.exe               492    424      9      764      0      0 2019-12-11 13:41:35 UTC+0000
+
+   0xfffffa8001ca4b30 lsm.exe                 500    424     11      185      0      0 2019-12-11 13:41:35 UTC+0000
+
+   0xfffffa8001cf4b30 svchost.exe             588    484     11      358      0      0 2019-12-11 13:41:39 UTC+0000
+
+   0xfffffa8001d327c0 VBoxService.ex          652    484     13      137      0      0 2019-12-11 13:41:40 UTC+0000
+
+   0xfffffa8001d49b30 svchost.exe             720    484      8      279      0      0 2019-12-11 13:41:41 UTC+0000
+
+   0xfffffa8001d8c420 svchost.exe             816    484     23      569      0      0 2019-12-11 13:41:42 UTC+0000
+
+   0xfffffa8001da5b30 svchost.exe             852    484     28      542      0      0 2019-12-11 13:41:43 UTC+0000
+
+   0xfffffa8001da96c0 svchost.exe             876    484     32      941      0      0 2019-12-11 13:41:43 UTC+0000
+
+   0xfffffa8001e1bb30 svchost.exe             472    484     19      476      0      0 2019-12-11 13:41:47 UTC+0000
+
+   0xfffffa8001e50b30 svchost.exe            1044    484     14      366      0      0 2019-12-11 13:41:48 UTC+0000
+
+   0xfffffa8001eba230 spoolsv.exe            1208    484     13      282      0      0 2019-12-11 13:41:51 UTC+0000
+
+   0xfffffa8001eda060 svchost.exe            1248    484     19      313      0      0 2019-12-11 13:41:52 UTC+0000
+
+   0xfffffa8001f58890 svchost.exe            1372    484     22      295      0      0 2019-12-11 13:41:54 UTC+0000
+
+   0xfffffa8001f91b30 TCPSVCS.EXE            1416    484      4       97      0      0 2019-12-11 13:41:55 UTC+0000
+
+   0xfffffa8000d3c400 sppsvc.exe             1508    484      4      141      0      0 2019-12-11 14:16:06 UTC+0000
+
+   0xfffffa8001c38580 svchost.exe             948    484     13      322      0      0 2019-12-11 14:16:07 UTC+0000
+
+   0xfffffa8002170630 wmpnetwk.exe           1856    484     16      451      0      0 2019-12-11 14:16:08 UTC+0000
+
+   0xfffffa8001d376f0 SearchIndexer.          480    484     14      701      0      0 2019-12-11 14:16:09 UTC+0000
+
+   0xfffffa8001eb47f0 taskhost.exe            296    484      8      151      1      0 2019-12-11 14:32:24 UTC+0000
+
+   0xfffffa8001dfa910 dwm.exe                1988    852      5       72      1      0 2019-12-11 14:32:25 UTC+0000
+
+   0xfffffa8002046960 explorer.exe            604   2016     33      927      1      0 2019-12-11 14:32:25 UTC+0000
+
+   0xfffffa80021c75d0 VBoxTray.exe           1844    604     11      140      1      0 2019-12-11 14:32:35 UTC+0000
+
+   0xfffffa80021da060 audiodg.exe            2064    816      6      131      0      0 2019-12-11 14:32:37 UTC+0000
+
+   0xfffffa80022199e0 svchost.exe            2368    484      9      365      0      0 2019-12-11 14:32:51 UTC+0000
+
+   0xfffffa8002222780 cmd.exe                1984    604      1       21      1      0 2019-12-11 14:34:54 UTC+0000
+
+   0xfffffa8002227140 conhost.exe            2692    368      2       50      1      0 2019-12-11 14:34:54 UTC+0000
+
+   0xfffffa80022bab30 mspaint.exe            2424    604      6      128      1      0 2019-12-11 14:35:14 UTC+0000
+
+   0xfffffa8000eac770 svchost.exe            2660    484      6      100      0      0 2019-12-11 14:35:14 UTC+0000
+
+   0xfffffa8001e68060 csrss.exe              2760   2680      7      172      2      0 2019-12-11 14:37:05 UTC+0000
+
+   0xfffffa8000ecbb30 winlogon.exe           2808   2680      4      119      2      0 2019-12-11 14:37:05 UTC+0000
+
+   0xfffffa8000f3aab0 taskhost.exe           2908    484      9      158      2      0 2019-12-11 14:37:13 UTC+0000
+
+   0xfffffa8000f4db30 dwm.exe                3004    852      5       72      2      0 2019-12-11 14:37:14 UTC+0000
+
+   0xfffffa8000f4c670 explorer.exe           2504   3000     34      825      2      0 2019-12-11 14:37:14 UTC+0000
+
+   0xfffffa8000f9a4e0 VBoxTray.exe           2304   2504     14      144      2      0 2019-12-11 14:37:14 UTC+0000
+
+   0xfffffa8000fff630 SearchProtocol         2524    480      7      226      2      0 2019-12-11 14:37:21 UTC+0000
+
+   0xfffffa8000ecea60 SearchFilterHo         1720    480      5       90      0      0 2019-12-11 14:37:21 UTC+0000
+
+   0xfffffa8001010b30 WinRAR.exe             1512   2504      6      207      2      0 2019-12-11 14:37:23 UTC+0000
+
+   0xfffffa8001020b30 SearchProtocol         2868    480      8      279      0      0 2019-12-11 14:37:23 UTC+0000
+
+   0xfffffa8001048060 DumpIt.exe              796    604      2       45      1      1 2019-12-11 14:37:54 UTC+0000
+
+   0xfffffa800104a780 conhost.exe            2260    368      2       50      1      0 2019-12-11 14:37:54 UTC+0000
+   ```
+9. I noticed the presence of `cmd.exe` which in description of the challenge mentioned of some command-line activity.
+10. To retrieve the command history I executed the `consoles` command.
+   ```bash
+   ┌──(neels㉿neel)-[~/CustomQuesCryptonite/Forensics/ReDraw]
+   └─$ ./vol -f MemoryDump_Lab1.raw --profile=Win7SP1x64 consoles
+   Volatility Foundation Volatility Framework 2.6
+   **************************************************
+   ConsoleProcess: conhost.exe Pid: 2692
+   Console: 0xff756200 CommandHistorySize: 50
+   HistoryBufferCount: 1 HistoryBufferMax: 4
+   OriginalTitle: %SystemRoot%\system32\cmd.exe
+   Title: C:\Windows\system32\cmd.exe - St4G3$1
+   AttachedProcess: cmd.exe Pid: 1984 Handle: 0x60
+   ----
+   CommandHistory: 0x1fe9c0 Application: cmd.exe Flags: Allocated, Reset
+   CommandCount: 1 LastAdded: 0 LastDisplayed: 0
+   FirstCommand: 0 CommandCountMax: 50
+   ProcessHandle: 0x60
+   ----
+   Cmd #0 at 0x1de3c0: St4G3$1
+   ----
+   Screen 0x1e0f70 X:80 Y:300
+   Dump:
+   Microsoft Windows [Version 6.1.7601]
+   Copyright (c) 2009 Microsoft Corporation.  All rights reserved.
+   C:\Users\SmartNet>St4G3$1                           ZmxhZ3t0aDFzXzFzX3RoM18xc3Rfc3Q0ZzMhIX0=            Press any key to continue . . .
+   **************************************************
+   ConsoleProcess: conhost.exe Pid: 2260
+   Console: 0xff756200 CommandHistorySize: 50
+   HistoryBufferCount: 1 HistoryBufferMax: 4
+   OriginalTitle: C:\Users\SmartNet\Downloads\DumpIt\DumpIt.exe
+   Title: C:\Users\SmartNet\Downloads\DumpIt\DumpIt.exe
+   AttachedProcess: DumpIt.exe Pid: 796 Handle: 0x60
+   ----
+   CommandHistory: 0x38ea90 Application: DumpIt.exe Flags: Allocated
+   CommandCount: 0 LastAdded: -1 LastDisplayed: -1
+   FirstCommand: 0 CommandCountMax: 50
+   ProcessHandle: 0x60
+   ----
+   Screen 0x371050 X:80 Y:300
+   Dump:
+   DumpIt - v1.3.2.20110401 - One click memory memory dumper
+   Copyright (c) 2007 - 2011, Matthieu Suiche <http://www.msuiche.net>
+   Copyright (c) 2010 - 2011, MoonSols <http://www.moonsols.com>
+   Address space size:        1073676288 bytes (   1023 Mb)
+   Free space size:          24185389056 bytes (  23064 Mb)
+   * Destination = \??\C:\Users\SmartNet\Downloads\DumpIt\SMARTNET-PC-20191211-
+   --> Are you sure you want to continue? [y/n] y
+   + Processing...
+   ```
+11. The output contained a base64 encoded command: `ZmxhZ3t0aDFzXzFzX3RoM18xc3Rfc3Q0ZzMhIX0=`.
+12. I decoded this base64 string to retrieve the first flag: 
+    ```
+    flag{th1s_1s_th3_1st_st4g3!!}
+    ```
+
+### Flag 2
+13. The challenge hinted of a painting program confirming with the presence of `mspaint.exe` in the running processes(which I found after reading process list many times).
+14. I located an article discussing how to extract images from memory dump.
+15. I used `memdump` to create a dump of the `mspaint.exe` process with PID 2424.
+   ```bash
+   ┌──(neels㉿neel)-[~/CustomQuesCryptonite/Forensics/ReDraw]
+   └─$ ./vol -f MemoryDump_Lab1.raw --profile=Win7SP1x64 memdump -p 2424 -D .
+   Volatility Foundation Volatility Framework 2.6
+   Writing mspaint.exe [  2424] to 2424.dmp
+   ```
+16. I renamed the resulting file `2424.dmp` to `2424.data` and attempted to open it in GIMP as raw data(Also confirmed with my Mentor).
+   ```bash
+   ──(neels㉿neel)-[~/CustomQuesCryptonite/Forensics/ReDraw]
+   └─$ chmod +x GIMP-3.0.6-x86_64.AppImage
+
+   ┌──(neels㉿neel)-[~/CustomQuesCryptonite/Forensics/ReDraw]
+   └─$ ./GIMP-3.0.6-x86_64.AppImage
+
+   set device 'ImExPS/2 Generic Explorer Mouse' to mode: disabled
+   set device 'Virtual core XTEST pointer' to mode: disabled
+   set device 'VirtualBox USB Tablet' to mode: disabled
+   set device 'VirtualBox mouse integration' to mode: disabled
+   ```
+   ![image4](images/ReDraw1.png)
+17. Despite numerous adjustments with dimensions, I initially saw nothing. But suddenly I was able to reach the point where something written starts to appear. Then after some more adjustments I got some exact values where text which was the flag was visible.
+   ![image4](images/ReDraw2.png)
+18. Then I flipped the image vertically in GIMP using `View > Flip and Rotate > Rotate` Vertically revealing part of the flag.  
+   ![image4](images/ReDraw3.png)
+   `flag{G00d_BoY_good_girL}`
+
+### Flag 3
+19. To find the `mysterious archive` mentioned in the challenge description, I executed a `filescan` to list files in memory.
+   ```bash
+   ┌──(neels㉿neel)-[~/CustomQuesCryptonite/Forensics/ReDraw]
+   └─$ ./vol -f MemoryDump_Lab1.raw --profile=Win7SP1x64 filescan
+
+   Volatility Foundation Volatility Framework 2.6
+   Offset(P)            #Ptr   #Hnd Access Name
+
+   0x000000003e801310      2      1 \Device\NamedPipe\MsFteWds
+   0x000000003e809610      9      0 R--r-d \Device\HarddiskVolume2\Windows\System32\dot3api.dll
+   0x000000003e80b9f0      2      1  \Device\Afd\Endpoint
+   ```
+20. There were a lot of files but I checked for some images and other file format and then I used `grep` to search for pngs,jpegs and rar, but I found something in rar. I then filtered the results for `.rar` files using grep.
+   ```bash
+   ┌──(neels㉿neel)-[~/CustomQuesCryptonite/Forensics/ReDraw]
+   └─$ ./vol -f MemoryDump_Lab1.raw --profile=Win7SP1x64 filescan | grep -E '\.rar'
+   Volatility Foundation Volatility Framework 2.6
+   0x000000003fa3ebc0      1      0 R--r-- \Device\HarddiskVolume2\Users\Alissa Simpson\Documents\Important.rar
+   0x000000003fac3bc0      1      0 R--r-- \Device\HarddiskVolume2\Users\Alissa Simpson\Documents\Important.rar
+   0x000000003fb48bc0      1      0 R--r-- \Device\HarddiskVolume2\Users\Alissa Simpson\Documents\Important.rar
+   ```
+21. With the offsets identified which is `0x000000003fa3ebc0`, I used the `dumpfiles` command to extract the important RAR file.
+   ```bash
+   ┌──(neels㉿neel)-[~/CustomQuesCryptonite/Forensics/ReDraw]
+   └─$ ./vol -f MemoryDump_Lab1.raw --profile=Win7SP1x64 dumpfiles -Q 0x000000003fa3ebc0 -D .
+   Volatility Foundation Volatility Framework 2.6
+   DataSectionObject 0x3fa3ebc0   None   \Device\HarddiskVolume2\Users\Alissa Simpson\Documents\Important.rar
+   ```
+22. I renamed the output `.dat` file to a `.rar` file and attempted to extract its contents.
+23. The RAR archive was password protected which indicated as the NTLM hash of Alissa's account password.
+   ```bash
+   ┌──(neels㉿neel)-[~/CustomQuesCryptonite/Forensics/ReDraw]
+   └─$ unrar e file.None.0xfffffa8001034450.rar
+
+   UNRAR 7.11 freeware      Copyright (c) 1993-2025 Alexander Roshal
+
+   Archive comment:
+   Password is NTLM hash(in uppercase) of Alissa's account passwd.
+
+   Extracting from file.None.0xfffffa8001034450.rar
+
+   Enter password (will not be echoed) for flag3.png:
+   ```
+24. To discover the password I again ran `hashdump` to extract user account hashes.
+   ```bash
+   ┌──(neels㉿neel)-[~/CustomQuesCryptonite/Forensics/ReDraw]
+   └─$ ./vol -f MemoryDump_Lab1.raw --profile=Win7SP1x64 hashdump
+
+   Volatility Foundation Volatility Framework 2.6
+   Administrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+   Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+   SmartNet:1001:aad3b435b51404eeaad3b435b51404ee:4943abb39473a6f32c11301f4987e7e0:::
+   HomeGroupUser$:1002:aad3b435b51404eeaad3b435b51404ee:f0fc3d257814e08fea06e63c5762ebd5:::
+   Alissa Simpson:1003:aad3b435b51404eeaad3b435b51404ee:f4ff64c8baac57d22f22edc681055ba6:::
+   ```
+25. The hash for Alissa's account led me to the password: `F4FF64C8BAAC57D22F22EDC681055BA6`(which I tried in lowercase earlier but the password was in UPPERCASE).
+26. After entering this password, I successfully extracted the third flag.  
+   `flag{w3ll_3rd_stage_was_easy}`
+   ![image4](images/ReDraw4.png)
+
+
+## Flags:
+```
+flag{th1s_1s_th3_1st_st4g3!!}
+flag{G00d_BoY_good_girL}
+flag{w3ll_3rd_stage_was_easy}
+```
+
+## Concepts learnt:
+- I gained experience in using Volatility which is used for memory forensics.
+- I learned how to analyze memory dumps to extract sensitive information from a users computer memory.
+- I discovered how to retrieve run commands and command history from a memory dump.
+- I identified how to recover images from a memory dump using tools like `GIMP`.
+- I became familiar with NTLM hashing and its application in password recovery(which I used to get flag 3).
+
+## Notes:
+- I spent a lot of time manipulating offsets in GIMP to view the image correctly.
+- I explored other `.rar` archives in the memory dump out of curiosity, which I later realized all had the same password requirement.
+
+## Resources:
+- Installing Volatility: [YouTube video](https://www.youtube.com/watch?v=0cS8LhFZChQ)
+- Volatility Linux file: [Download Link](https://github.com/volatilityfoundation/volatility/releases/download/2.6.1/volatility_2.6_lin64_standalone.zip)
+- Volatility commands help article: [Blog](https://www.varonis.com/blog/how-to-use-volatility)
+- GIMP download: [GIMP Official Site](https://www.gimp.org/downloads/)
