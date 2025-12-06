@@ -1,3 +1,159 @@
+# 3. Time
+This challenge presents a number guessing game where the player must guess a randomly generated number to reveal a flag. The challenge need us to reverse engineering the executable file to obtain the required number without guessing blindly.
+
+## Solution:
+1. I began by changing the file permissions of the `time` executable program to make it runnable using `chmod +x time`.
+2. I executed the program with `./time`, which led me to guess a number.
+    ```bash
+    ┌──(neels㉿neel)-[~/CustomQuesCryptonite/ReverseEngineering/Time]
+    └─$ ./time
+
+    Welcome to the number guessing game!
+    I'm thinking of a number. Can you guess it?
+    Guess right and you get a flag!
+    Enter your number: 3423424
+    Your guess was 3423424.
+    Looking for 2000268884.
+    Sorry. Try again, wrong guess!
+    ```
+3. So we have to guess the correct number to get our flag(success message).
+4. I decided to use `gdb` for reverse engineering as I had used in previous CTFs. I opened the terminal and typed `gdb time` to initiate debugging.
+    ```bash
+    ┌──(neels㉿neel)-[~/CustomQuesCryptonite/ReverseEngineering/Time]
+    └─$ gdb time
+    GNU gdb (Debian 16.3-5) 16.3
+    Copyright (C) 2024 Free Software Foundation, Inc.
+    License GPLv3+: GNU GPL version 3 or later http://gnu.org/licenses/gpl.html
+    This is free software: you are free to change and redistribute it.
+    There is NO WARRANTY, to the extent permitted by law.
+    Type "show copying" and "show warranty" for details.
+    This GDB was configured as "x86_64-linux-gnu".
+    Type "show configuration" for configuration details.
+    For bug reporting instructions, please see:
+    https://www.gnu.org/software/gdb/bugs/.
+    Find the GDB manual and other documentation resources online at:
+    http://www.gnu.org/software/gdb/documentation/.
+
+    For help, type "help".
+    Type "apropos word" to search for commands related to "word"...
+    Reading symbols from time...
+    (No debugging symbols found in time)
+    (gdb)
+    ```
+5. In `gdb` I checked for available functions using the command `info functions` to understand what functions were used in the program.
+    ![image2](images/Time1.png)
+    ```bash
+    (gdb) info functions
+    All defined functions:
+
+    Non-debugging symbols:
+    0x00000000004006b8  _init
+    0x00000000004006e0  puts@plt
+    0x00000000004006f0  fclose@plt
+    0x0000000000400700  __stack_chk_fail@plt
+    0x0000000000400710  printf@plt
+    0x0000000000400720  memset@plt
+    0x0000000000400730  srand@plt
+    0x0000000000400740  fgets@plt
+    0x0000000000400750  time@plt
+    0x0000000000400760  fflush@plt
+    0x0000000000400770  fopen@plt
+    0x0000000000400780  __isoc99_scanf@plt
+    0x0000000000400790  rand@plt
+    0x00000000004007a0  _start
+    0x00000000004007d0  deregister_tm_clones
+    0x0000000000400800  register_tm_clones
+    0x0000000000400840  __do_global_dtors_aux
+    0x0000000000400870  frame_dummy
+    0x0000000000400877  giveFlag
+    0x000000000040092b  main
+    0x0000000000400a50  __libc_csu_init
+    ```
+6. I assumed that the functions `srand@plt` and `rand@plt` were responsible for generating the random number, so I needed to find where the random number was stored like in which register.
+7. So to get where the number was stored, I disassembled the `main` function using the command `disassemble main`.
+    ```bash
+    (gdb) disassemble main
+    Dump of assembler code for function main:
+    0x000000000040092b <+0>:     push   %rbp
+    0x000000000040092c <+1>:     mov    %rsp,%rbp
+    0x000000000040092f <+4>:     sub    $0x20,%rsp
+    0x0000000000400933 <+8>:     mov    %edi,-0x14(%rbp)
+    0x0000000000400936 <+11>:    mov    %rsi,-0x20(%rbp)
+    0x000000000040093a <+15>:    mov    %fs:0x28,%rax
+    0x0000000000400943 <+24>:    mov    %rax,-0x8(%rbp)
+    0x0000000000400947 <+28>:    xor    %eax,%eax
+    0x0000000000400949 <+30>:    mov    $0x0,%edi
+    0x000000000040094e <+35>:    call   0x400750 time@plt
+    0x0000000000400953 <+40>:    mov    %eax,%edi
+    0x0000000000400955 <+42>:    call   0x400730 srand@plt
+    0x000000000040095a <+47>:    call   0x400790 rand@plt
+    0x000000000040095f <+52>:    mov    %eax,-0xc(%rbp)
+    0x0000000000400962 <+55>:    lea    0x1c7(%rip),%rdi        # 0x400b30
+    0x0000000000400969 <+62>:    call   0x4006e0 puts@plt
+    0x000000000040096e <+67>:    lea    0x1e3(%rip),%rdi        # 0x400b58
+    0x0000000000400975 <+74>:    call   0x4006e0 puts@plt
+    0x000000000040097a <+79>:    lea    0x207(%rip),%rdi        # 0x400b88
+    0x0000000000400981 <+86>:    call   0x4006e0 puts@plt
+    0x0000000000400986 <+91>:    lea    0x21b(%rip),%rdi        # 0x400ba8
+    0x000000000040098d <+98>:    mov    $0x0,%eax
+    0x0000000000400992 <+103>:   call   0x400710 printf@plt
+    ```
+8. While examining the assembly code, I located the instruction `mov %eax,-0xc(%rbp)` at `0x000000000040095f`, indicating that the generated number was stored in the `eax` register.
+9. I set a breakpoint before this line with `break *0x40095f`.
+    ```bash
+    (gdb) break *0x40095f
+    Breakpoint 1 at 0x40095f
+    ```
+10. Upon executing the program with the command run, I triggered the breakpoint and examined the value of the eax register using `info registers eax`, which revealed the number `142633502`.
+    ```bash
+    (gdb) run
+    Starting program: /home/neels/CustomQuesCryptonite/ReverseEngineering/Time/time
+    [Thread debugging using libthread_db enabled]
+    Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+    Breakpoint 1, 0x000000000040095f in main ()
+
+    (gdb) info registers eax
+    eax            0x8806a1e           142633502
+    ```
+11. I continued the program execution with `continue`, and then I entered `142633502` as my guess when prompted. 
+    ```bash
+    (gdb) continue
+    Continuing.
+    Welcome to the number guessing game!
+    I'm thinking of a number. Can you guess it?
+    Guess right and you get a flag!
+    Enter your number: 142633502
+    Your guess was 142633502.
+    Looking for 142633502.
+    You won. Guess was right! Here's your flag:
+    Flag file not found!  Contact an H3 admin for assistance.
+    ```
+12. The output confirmed I had guessed correctly and success message was printed -  "You won. Guess was right!" 
+
+## Flag:
+```
+NA
+```
+
+## Concepts learnt:
+- Understanding basic file permissions and executable running in Linux.
+- Using GDB for reverse engineering executables.
+- Setting breakpoints to observe program behavior and register values.
+
+## Notes:
+- I spent some time investigating multiple registers within the main function which was unnecessary but informative.
+- Initially, I also disassembled the `giveFlag` function in hopes of directly finding a flag but later realized that it only led me to the confirmation of success message.
+
+## Resources:
+- [GDB Commands Tutorial](http://www.yolinux.com/TUTORIALS/GDB-Commands.html)
+
+
+
+
+
+
+
+
 # 4. VeridisQuo
 The challenge wants us to analyze an Android application package (APK) file to extract hidden information. We are required to decompile the APK to inspect its structure and code and find flags embedded within.
 
