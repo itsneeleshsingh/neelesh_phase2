@@ -1,3 +1,135 @@
+# 2. WorthyKnight
+This challenge involves reverse engineering a binary file named `worthy.knight`. The challenge requires us to determine the exact input that the binary expects. We have to decompile the code to get the working of the program to get our flag.
+
+## Solution:
+1. I started by changing the permissions of the `worthy.knight` file to make it executable using the command:
+   ```bash
+   chmod +x worthy.knight
+   ```
+2. After that, I executed the binary with:
+    ```bash
+    ┌──(neels㉿neel)-[~/CustomQuesCryptonite/ReverseEngineering/WorthyKnight]
+    └─$ ./worthy.knight
+    (Knight's Adventure)
+         O
+    <M>            .---.
+    /W\\           ( -.- )--------.
+    ^    \|/            \*o*/         )    ^
+
+    /|\    |     *      ~~~~~~~       /    /|\
+
+    / \   / \  /|\                    /    / \
+    Welcome, traveler. A mighty dragon blocks the gate.
+    Speak the secret incantation (10 runic letters) to continue.
+
+    Enter your incantation: AAAAAAAAAA
+
+    The ancient seals do not resonate with your runes.
+    The ancient dragon roars: "Begone, unworthy!"
+            __,---/￣￣＼
+            __/義___/  ●  ●  \\___
+            |  浪人|      ､_J      |
+            \\___,  \\___,____, ___/
+                    /     |     \\
+                (      |      )
+                    \\     |     /
+3. The output displayed an ASCII art representation of a knight and asked for a 10-character incantation.
+4. I entered `AAAAAAAAAA` as a test input, and the response indicated that it was incorrect.
+5. I loaded the `worthy.knight` binary into Ghidra for analysis and created a new project.
+    ![image3](images/WorthyKnight1.png)
+6. I inspected the functions and identified `FUN_001010d0` as the main function because it involved user input and output.
+7. Inside the `FUN_001010d0`, I found a set of conditions that validated the user input grouped into pairs. This indicated that the 10-character input could be analyzed as five separate pairs.
+8. For the first pair - the checks indicated that:
+   ```c
+   (local_c8[1] ^ local_c8[0]) == 0x24
+   local_c8[1] == 0x6a
+   ```
+   This led me to calculate that the second character must be `j`, and I calculated the first character using XOR resulting in `N`. Thus Pair-1 resolved to `Nj`.
+   ![image2](images/WorthyKnight2.png)
+9. Next, I examined Pair-3 which involved an MD5 hash check. The input characters were swapped before hashing:
+   ```c
+   MD5([b][a])
+   ```
+   I was unable to reverse MD5 manually, so I created a brute-force script to test all combinations until I found a match for the target hash:
+   ```python
+    import hashlib
+
+    target_hash = '33a3192ba92b5a4803c9a9ed70ea5a9c'
+
+    def check_hash(a, b):
+        return hashlib.md5(bytes([a, b])).hexdigest() == target_hash
+
+    for a in range(ord('A'), ord('Z') + 1):
+        for b in range(ord('Z') + 1):
+            if check_hash(a, b):
+                print(f"{chr(a)}{chr(b)}")
+                break
+        else:
+            continue
+        break
+
+    for a in range(ord('a'), ord('z') + 1):
+        for b in range(ord('a'), ord('z') + 1):
+            if check_hash(a, b):
+                print(f"{chr(a)}{chr(b)}")
+                break
+        else:
+            continue
+        break
+
+    for a in range(ord('A'), ord('Z') + 1):
+        for b in range(ord('a'), ord('z') + 1):
+            if check_hash(a, b):
+                print(f"{chr(a)}{chr(b)}")
+                break
+        else:
+            continue
+        break
+   ```
+10. The script revealed that the correct input was `Tf` for the swapped order that means Pair-3 was `fT`.
+    ```bash
+    ┌──(neels㉿neel)-[~/CustomQuesCryptonite/ReverseEngineering/WorthyKnight]
+    └─$ python pair3.py
+    Tf
+    ```
+11. I solved Pair-2, Pair-4, and Pair-5 using similar XOR method using a Xor calculation tool, resulting in:
+    - Pair-2: `kS`
+    - Pair-4: `Ya`
+    - Pair-5: `Ii`
+12. Concatenating all pairs gave me the full, correct incantation:
+    ``` 
+    NjkSfTYaIi 
+    ```
+13. Finally, I saw the code that the flag was wrapped in `KCTF{}` giving me the full flag.
+
+## Flag:
+```
+KCTF{NjkSfTYaIi}
+```
+
+## Concepts learnt:
+- Basics of binary analysis using Ghidra
+- Understanding of how to manipulate and analyze user input in binaries
+- XOR operations and their applications in deriving character values
+- Understanding of cryptographic hashes (MD5)
+
+## Notes:
+- While analyzing, I mistakenly thought I could derive a fixed pattern for all pairs, but it turned out that each was unique in logic.
+- Initially, I thought that to decipher the MD5 hash there can be some algorithms, but realised that brute-forcing was only option for me.
+
+## Resources:
+- XOR calculations online tool: [xor.pw](https://xor.pw/#)
+- Ghidra installation guide: [Kali Ghidra](https://www.kali.org/tools/ghidra/)
+
+
+
+
+
+
+
+
+
+
 # 3. Time
 This challenge presents a number guessing game where the player must guess a randomly generated number to reveal a flag. The challenge need us to reverse engineering the executable file to obtain the required number without guessing blindly.
 
