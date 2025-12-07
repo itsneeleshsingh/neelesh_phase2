@@ -683,6 +683,7 @@ The challenge involves reverse engineering a binary file written in Rust to extr
    ```
 
 I was not able to complete - Part2 and Part3 of this challenge. I used `IDA` to decompile the program and reverse it with python code.
+    ![image5](images/Dusty1.png)
 
 ## Flag:
 ```
