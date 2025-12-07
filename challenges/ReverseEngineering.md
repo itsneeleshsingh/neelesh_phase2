@@ -1,3 +1,125 @@
+# 1. JoyDivision
+The challenge involves reversing a binary applicationand to understand how the binary reads the input file and processes it through various functions. The goal is to reverse the transformations to recover the original content of the file, looking for the flag contained.
+
+## Solution:
+1. First I ran the program to see what it does.
+    ```bash
+    ┌──(neels㉿neel)-[~/CustomQuesCryptonite/ReverseEngineering/JoyDivision]
+    └─$ ./disorder 
+
+    May Jupiter strike you down Caeser before you seize the treasury!! You will have to tear me apart
+    for me to tell you the flag to unlock the Roman Treasury and fund your civil war. I, Lucius Caecilius
+    Metellus, shall not let you pass until you get this password right. (or threaten to kill me-)
+
+    zsh: segmentation fault  ./disorder
+    ```
+    I started by analyzing the binary using Ghidra as used in other challenges, examining how it reads the content from the file named `palatinepackflag.txt` using the `fgets` function. This indicated that the actual file exist in palatinepackflag.txt which after certain operations are stored in given `flag.txt` file.
+
+2. I identified two functions: `flipBits` and `expand`. The `flipBits` function alternates between flipping bits and XOR operations with a changing key. This suggests that reversing this function is simply performing the same operations again(Property of XOR) will restore the original data.
+    ![image4](images/JoyDivision1.png)
+
+3. My first target was the initial reading and flipping using `flipBits`. The method applied a bitwise NOT for even positions and XORed with a key (starting at `0x69` and incremented by `0x20`) for odd positions. To reverse this process I applied the same operations to the transformed data.
+
+4. The binary then calls the `expand` function three times. Each expansion doubles the data size by splitting bytes using some operations and modifying a key multiplied by 11.
+
+5. Then, I examined the transformations of the expand function and tried to build logic for that where the main time wasted.
+
+6. Each expansion was reversed by compressing the expanded bytes, followed by a execution of `flipBits` to restore the original file content.
+
+7. Finally, I developed a Python script that executed these reversal steps in reverse order and after several corrections and changes I got the flag.
+
+    ```python
+    from pathlib import Path
+    import re
+
+    data = Path("flag.txt").read_bytes()
+
+    def inverse_expand(b):
+        n = len(b) // 2
+        out = bytearray(n)
+        k = 0x69
+        s = False
+        for i in range(n):
+            a = b[2*i]
+            c = b[2*i+1]
+            if not s:
+                v = (a & 0x0F) | (c & 0xF0)
+            else:
+                v = (c & 0x0F) | (a & 0xF0)
+            out[i] = v
+            k = (k * 11) & 0xFF
+            s = not s
+        return bytes(out)
+
+    def flip_bits(b):
+        out = bytearray(b)
+        k = 0x69
+        s = False
+        for i in range(len(out)):
+            if s:
+                out[i] ^= k
+                k = (k + 0x20) & 0xFF
+            else:
+                out[i] = (~out[i]) & 0xFF
+            s = not s
+        return bytes(out)
+
+    a = inverse_expand(data)
+    a = inverse_expand(a)
+    a = inverse_expand(a)
+
+    if a and a[-1] == 0:
+        a = a[:-1]
+
+    r = flip_bits(a)
+
+    try:
+        t = r.decode()
+    except:
+        t = ''.join(chr(x) if 32 <= x <= 126 else ' ' for x in r)
+
+    print(t)
+
+    for p in [r'CTF\{[^}]+\}', r'flag\{[^}]+\}', r'FLAG\{[^}]+\}', r'picoCTF\{[^}]+\}']:
+        m = re.search(p, t)
+        if m:
+            print(m.group(0))
+    ```
+
+After executing the script with `flag.txt`, the output revealed readable text.
+    ```bash
+    ┌──(neels㉿neel)-[~/CustomQuesCryptonite/ReverseEngineering/JoyDivision]
+    └─$ python solve.py                                    
+    sunshine{C3A5ER_CR055ED_TH3_RUB1C0N}
+    ```
+
+## Flag:
+```
+sunshine{C3A5ER_CR055ED_TH3_RUB1C0N}
+```
+
+## Concepts learnt:
+- Understanding of binary analysis and reversing using Ghidra.
+- Got to know how to reverse transformations performed on data that is bit manipulation.
+- Familiarity with bitwise operations: NOT and XOR.
+
+## Notes:
+- Initially, I did not understand why flag.txt file is given, but after understanding the code I got that it is just cipher of the original flag.
+- I was not able to decode or reverse what the expand function is doing, but after several steps was able to do it.
+
+## Resources:
+- Ghidra official documentation for binary analysis.
+- Some google searches.
+
+
+
+
+
+
+
+
+
+
 # 2. WorthyKnight
 This challenge involves reverse engineering a binary file named `worthy.knight`. The challenge requires us to determine the exact input that the binary expects. We have to decompile the code to get the working of the program to get our flag.
 
