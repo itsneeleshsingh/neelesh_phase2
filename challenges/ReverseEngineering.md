@@ -536,3 +536,174 @@ BYUCTF{tayccdrni0dkupocfe_e_fi_4e}
 ## Resources:
 - Online APK decompiler: [javadecompilers.com](http://www.javadecompilers.com/)
 - Overview of the Android file structure: [GeeksforGeeks](https://www.geeksforgeeks.org/android/android-android-apps-file-structure/)
+
+
+
+
+
+
+
+
+# 5. Dusty
+The challenge involves reverse engineering a binary file written in Rust to extract a hidden flag. We have to decipher some coded data and locate the correct logic that leads to the flag.
+
+## Solution:
+1. I started by opening the `dust_noob` binary in Ghidra and checked for strings, but I could not find any flags. But when I checked functions, it was showing only Rust runtime stuff like `__rust_alloc`,  etc so I understood that Ghidra was not analyzing this binary properly.
+    ```bash
+    strings -n 5 dust_noob | grep -i "flag"
+    ```
+  
+2. So I executed the `file` command to gather more information about the binary type.
+    ```bash
+    ┌──(neels㉿neel)-[~/CustomQuesCryptonite/ReverseEngineering/Dusty]
+    └─$ file dust_noob 
+    dust_noob: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=0e91c3247b82497c448e69060be605936f5f06fe, for GNU/Linux 3.2.0, not stripped
+    ```
+
+3. After analyzing the binary information, I transitioned to using `radare2` as my analysis tool. I loaded the binary with `r2 -A` to start analysis.
+    ```bash
+    ┌──(neels㉿neel)-[~/CustomQuesCryptonite/ReverseEngineering/Dusty]
+    └─$ r2 -A dust_noob
+
+    WARN: Relocs has not been applied. Please use `-e bin.relocs.apply=true` or `-e bin.cache=true` next time
+    INFO: Analyze all flags starting with sym. and entry0 (aa)
+    INFO: Analyze imports (af@@@i)
+    INFO: Analyze entrypoint (af@ entry0)
+    INFO: Analyze symbols (af@@@s)
+    WARN: Cannot find basic block for switch case at 0x000251ea bbdelta = 18
+    WARN: Cannot find basic block for switch case at 0x0002597c bbdelta = 4
+    INFO: Analyze all functions arguments/locals (afva@@@F)
+    INFO: Analyze function calls (aac)
+    INFO: Analyze len bytes of instructions for references (aar)
+    INFO: Finding and parsing C++ vtables (avrr)
+    INFO: Analyzing methods (af @@ method.*)
+    INFO: Recovering local variables (afva@@@F)
+    INFO: Type matching analysis for all functions (aaft)
+    INFO: Propagate noreturn information (aanr)
+    INFO: Use -AA or aaaa to perform additional experimental analysis
+    [0x000078e0]> 
+    ```
+
+4. Once I printed the main function using `pdf @ main`, I found that the `main()` function called a  Rust function named `shinyclean::main`.
+    ```bash
+    [0x000078e0]> pdf @ main
+            ; ICOD XREF from entry0 @ 0x78f8(r)
+    ┌ 32: int main (int argc, char **argv);
+    │ `- args(rdi, rsi)
+    │           0x00007d70      50             push rax
+    │           0x00007d71      4889f2         mov rdx, rsi                ; int64_t arg3
+    │           0x00007d74      488d05e832..   lea rax, obj.__rustc_debug_gdb_scripts_section__ ; 0x4b063
+    │           0x00007d7b      8a00           mov al, byte [rax]
+    │           0x00007d7d      4863f7         movsxd rsi, edi             ; int64_t arg2
+    │           0x00007d80      488d3db9fd..   lea rdi, [sym.shinyclean::main::h4b15dd54e331d693] ; 0x7b40 ; "H\x81\xec\b\x01" ; int64_t arg1                                                                                     
+    │           0x00007d87      31c9           xor ecx, ecx                ; int64_t arg4
+    │           0x00007d89      e832fdffff     call sym std::rt::lang_start::h91ff47afc442db24 ; sym.std::rt::lang_start::h91ff47afc442db24                                                                                       
+    │           0x00007d8e      59             pop rcx
+    └           0x00007d8f      c3             ret
+    [0x000078e0]> 
+    ```
+
+5. I continued the analysis by printing details of this function using the command.
+   ```bash
+    [0x000078e0]> pdf @ sym.shinyclean::main::h4b15dd54e331d693
+                ; ICOD XREF from main @ 0x7d80(r)
+    ┌ 553: sym.shinyclean::main::h4b15dd54e331d693 ();
+    │ afv: vars(40:sp[0x8..0x100])
+    │           0x00007b40      4881ec0801..   sub rsp, 0x108              ; shinyclean::main::h4b15dd54e331d693
+    │           0x00007b47      488d7c242a     lea rdi, [s]                ; void *s
+    │           0x00007b4c      31f6           xor esi, esi                ; int c
+    │           0x00007b4e      ba17000000     mov edx, 0x17               ; size_t n
+    │           0x00007b53      e8f8e4ffff     call sym.imp.memset         ; void *memset(void *s, int c, size_t n)
+    │           0x00007b58      c64424417b     mov byte [var_41h], 0x7b    ; '{'
+    │                                                                      ; [0x7b:1]=0                            
+    │           0x00007b5d      c64424425e     mov byte [var_42h], 0x5e    ; '^'
+    │                                                                      ; [0x5e:1]=0                            
+    │           0x00007b62      c644244348     mov byte [var_43h], 0x48    ; sym.std::io::stdio::OUTPUT_CAPTURE::__u7b__u7b_constant_u7d__u7d_::__u7b__u7b_closure_u7d__u7d_::VAL::h8770800c37491e59                              
+    │                                                                      ; [0x48:1]=64 ; "@"                     
+    │           0x00007b67      c644244458     mov byte [var_44h], 0x58    ; sym.std::thread::current::CURRENT::hfcf218c73181a3e0                                                                                                 
+    │                                                                      ; [0x58:1]=64 ; "@"                     
+    │           0x00007b6c      c64424457c     mov byte [var_45h], 0x7c    ; '|'
+    │                                                                      ; [0x7c:1]=4                            
+    │           0x00007b71      c64424466b     mov byte [var_46h], 0x6b    ; 'k'
+    │                                                                      ; [0x6b:1]=0                            
+    │           0x00007b76      c644244779     mov byte [var_47h], 0x79    ; 'y'
+    │                                                                      ; [0x79:1]=0                            
+    │           0x00007b7b      c644244844     mov byte [var_48h], 0x44    ; 'D'
+    │                                                                      ; [0x44:1]=4                            
+    │           0x00007b80      c644244979     mov byte [var_49h], 0x79    ; 'y'
+    │                                                                      ; [0x79:1]=0                            
+    │           0x00007b85      c644244a6d     mov byte [var_4ah], 0x6d    ; 'm'
+    │                                                                      ; [0x6d:1]=0                            
+    │           0x00007b8a      c644244b0c     mov byte [var_4bh], 0xc     ; [0xc:1]=0
+    │           0x00007b8f      c644244c0c     mov byte [var_4ch], 0xc     ; [0xc:1]=0
+    │           0x00007b94      c644244d60     mov byte [var_4dh], 0x60    ; '`'
+    │                                                                      ; [0x60:1]=16                           
+    │           0x00007b99      c644244e7c     mov byte [var_4eh], 0x7c    ; '|'
+    │                                                                      ; [0x7c:1]=4                            
+    │           0x00007b9e      c644244f0b     mov byte [var_4fh], 0xb     ; [0xb:1]=0
+    │           0x00007ba3      c64424506d     mov byte [var_50h], 0x6d    ; 'm'
+    │                                                                      ; [0x6d:1]=0                            
+    │           0x00007ba8      c644245160     mov byte [var_51h], 0x60    ; '`'
+    │                                                                      ; [0x60:1]=16                           
+    │           0x00007bad      c644245268     mov byte [var_52h], 0x68    ; 'h'
+    │                                                                      ; [0x68:1]=16                           
+    │           0x00007bb2      c64424530b     mov byte [var_53h], 0xb     ; [0xb:1]=0
+    │           0x00007bb7      c64424540a     mov byte [var_54h], 0xa
+    │           0x00007bbc      c644245577     mov byte [var_55h], 0x77    ; 'w'
+    │                                                                      ; [0x77:1]=0                            
+    │           0x00007bc1      c64424561e     mov byte [var_56h], 0x1e    ; [0x1e:1]=0
+    │           0x00007bc6      c644245742     mov byte [var_57h], 0x42    ; 'B'
+    │                                                                      ; [0x42:1]=0                            
+    │           0x00007bcb      48c7442458..   mov qword [var_58h], 0
+   ```
+
+6. After several attempts and reading, I found that it was storing encrypted flag bytes and also got to know that each byte was being XORed with `0x3f`.
+
+7. I then extracted all the relevant encrypted byte values in a list named `enc` and created a small Python script to decrypt them.
+
+   ```python
+   enc = [
+       0x7b, 0x5e, 0x48, 0x58, 0x7c, 0x6b, 0x79, 0x44, 0x79, 0x6d,
+       0x0c, 0x0c, 0x60, 0x7c, 0x0b, 0x6d, 0x60, 0x68, 0x0b, 0x0a,
+       0x77, 0x1e, 0x42
+   ]
+
+   result = ""
+   for b in enc:
+       result += chr(b ^ 0x3f)
+
+   print(result)
+   ```
+
+8. On running the script, it provided me with the decrypted flag.
+   ```bash
+    ┌──(neels㉿neel)-[~/CustomQuesCryptonite/ReverseEngineering/Dusty]
+    └─$ python noob.py            
+    DawgCTF{FR33_C4R_W45H!}
+   ```
+
+I was not able to complete - Part2 and Part3 of this challenge. I used `IDA` to decompile the program and reverse it with python code.
+
+## Flag:
+```
+DawgCTF{FR33_C4R_W45H!}
+```
+
+## Concepts learnt:
+- Familiarized with analyzing Rust binaries.
+- Gained experience working with `radare2`, `GDB` and `IDA` for deeper inspection of binary structures and functions.
+- Understood the mechanics of how data can be manipulated (e.g., XOR operations) to hide information.
+
+## Notes:
+- Initially used Ghidra but switched to radare2, which taught me the importance of choosing the right tool for specific tasks.
+- Realized that before exposing the flag, the program checks the process ID which I bypassed by decrypting the flag directly without running the binary.
+    ```bash
+    call std::process::id
+    cmp eax, 0x1c1e8b2
+    jne wrong_branch
+    ```
+
+## Resources:
+- [Ghidra](https://ghidra-sre.org/)
+- [Radare2](https://rada.re/n/)
+- Some google searches and help from mentor.
